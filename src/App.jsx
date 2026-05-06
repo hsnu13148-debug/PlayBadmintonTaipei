@@ -120,7 +120,7 @@ export default function App() {
           <span style={{fontSize:22}}>🏸</span>
           <div>
             <div style={{fontSize:16,fontWeight:700,color:"#e2e8f0"}}>台北羽球助手</div>
-            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V26.5.6.1</div>
+            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V26.5.6.2</div>
             <div style={{fontSize:10,color:"#64748b",display:"flex",gap:6}}>
               {now.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"short"})} {now.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}
             </div>
@@ -279,20 +279,6 @@ function parseSlots(html, dow) {
 async function tryFetchSlots(lid, date) {
   const ds  = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
   const dow = date.getDay();
-
-  // Try Vercel backend first (most reliable, no CORS)
-  try {
-    const r = await fetch(`/api/slots?lid=${lid}&date=${ds}`, { signal:AbortSignal.timeout(8000) });
-    if (r.ok) {
-      const j = await r.json();
-      if (j.total > 0 || j.available) {
-        let avail = j.available || [];
-        if (dow === 5) avail = avail.filter(t => parseInt(t.split(":")[0]) >= 18);
-        return { available:avail, booked:j.booked||[], total:j.total, via:"server" };
-      }
-    }
-  } catch(_) {}
-
   for (const apiPath of JSON_API_PATHS) {
     try {
       const r = await fetch(apiPath(lid,ds),{signal:AbortSignal.timeout(5000)});
@@ -342,21 +328,38 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
   const [results,  setResults]  = useState({});
   const [mapMode,  setMapMode]  = useState(false);
 
+  const [scanProgress, setScanProgress] = useState(""); // e.g. "文山 5/9 ✓"
+
   const scan = async () => {
     setScanning(true);
+    setResults({});
+    setScanProgress("");
+    // out[dateStr][lid] = { available, error }
     const out = {};
-    for (const v of LID_VENUES) {
-      const d = weekendDates[0]; // scan first upcoming date
-      try {
-        out[v.lid] = await tryFetchSlots(v.lid, d);
-      } catch(e) {
-        out[v.lid] = { available:[], booked:[], error:true };
+    for (const d of weekendDates) {
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      if (!out[ds]) out[ds] = {};
+      for (const v of LID_VENUES) {
+        setScanProgress(`掃描中… ${v.name} ${d.getMonth()+1}/${d.getDate()}`);
+        try {
+          // Use /api/slots (Vercel backend)
+          const r = await fetch(`/api/slots?lid=${v.lid}&date=${ds}`, {signal:AbortSignal.timeout(10000)});
+          if (r.ok) {
+            const j = await r.json();
+            out[ds][v.lid] = { available: j.available||[], error: false };
+          } else {
+            out[ds][v.lid] = { available:[], error:true };
+          }
+        } catch(e) {
+          out[ds][v.lid] = { available:[], error:true };
+        }
+        setResults({...out});
       }
-      setResults({...out});
     }
     setScanning(false);
-    const ok = Object.values(out).filter(r=>!r.error).length;
-    showToast(ok>0?`掃描完成，${ok}個場館有資料`:"掃描失敗，請手動查看");
+    setScanProgress("");
+    const totalAvail = Object.values(out).flatMap(d=>Object.values(d)).filter(r=>r.available?.length>0).length;
+    showToast(totalAvail>0?`掃描完成！${totalAvail}個場館有空位`:"掃描完成，目前全滿");
   };
 
   if (mapMode) {
@@ -394,28 +397,63 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
       </div>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
 
-      {/* Scan results banner */}
+      {/* Scan results - grouped by date */}
       {Object.keys(results).length>0 && (
-        <div style={{marginBottom:14,background:"#0a1018",borderRadius:11,padding:"10px 13px",border:"1px solid #1e293b"}}>
-          <div style={{fontSize:10,color:"#64748b",marginBottom:6}}>掃描結果</div>
-          <div style={{display:"flex",flexDirection:"column",gap:4}}>
-            {LID_VENUES.map(v=>{
-              const res=results[v.lid]; if(!res) return null;
-              return (
-                <div key={v.lid} style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontSize:12,color:"#94a3b8"}}>{v.name}</span>
-                  {res.error
-                    ? <span style={{fontSize:11,color:"#ef4444"}}>撈取失敗</span>
-                    : res.available?.length>0
-                    ? <div style={{display:"flex",flexWrap:"wrap",gap:3,justifyContent:"flex-end"}}>
-                        {res.available.map(t=><span key={t} style={{fontSize:10,padding:"2px 7px",borderRadius:5,background:"rgba(74,222,128,0.1)",color:"#4ade80",border:"1px solid rgba(74,222,128,0.25)"}}>{t}</span>)}
-                      </div>
-                    : <span style={{fontSize:11,color:"#64748b"}}>全滿</span>
-                  }
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:10,color:"#64748b",marginBottom:8}}>掃描結果</div>
+          {weekendDates.map(d=>{
+            const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+            const dayRes=results[ds]; if(!dayRes) return null;
+            const col=DAY_COLOR[d.getDay()];
+            const hasAny=Object.values(dayRes).some(r=>r.available?.length>0);
+            return(
+              <div key={ds} style={{marginBottom:10,background:"#0a1018",borderRadius:11,border:`1px solid ${hasAny?"rgba(74,222,128,0.2)":"#1e293b"}`,overflow:"hidden"}}>
+                {/* Date header */}
+                <div style={{padding:"8px 12px",background:hasAny?"rgba(74,222,128,0.05)":"transparent",borderBottom:"1px solid #1e293b",display:"flex",alignItems:"center",gap:6}}>
+                  <span style={{fontSize:12,fontWeight:700,color:col}}>{d.getMonth()+1}/{d.getDate()}（{["日","一","二","三","四","五","六"][d.getDay()]}）</span>
+                  {hasAny
+                    ? <span style={{fontSize:10,color:"#4ade80"}}>✅ 有空位</span>
+                    : <span style={{fontSize:10,color:"#64748b"}}>❌ 全滿</span>}
                 </div>
-              );
-            })}
-          </div>
+                {/* Venue results */}
+                <div style={{padding:"8px 10px",display:"flex",flexDirection:"column",gap:6}}>
+                  {LID_VENUES.map(v=>{
+                    const res=dayRes[v.lid];
+                    if(!res) return(
+                      <div key={v.lid} style={{display:"flex",alignItems:"center",gap:6}}>
+                        <span style={{fontSize:11,color:"#64748b",minWidth:90}}>{v.name}</span>
+                        <span style={{fontSize:10,color:"#475569"}}>掃描中…</span>
+                      </div>
+                    );
+                    return(
+                      <div key={v.lid}>
+                        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:res.available?.length>0?5:0}}>
+                          <span style={{fontSize:12,fontWeight:600,minWidth:90}}>{v.name}</span>
+                          {res.error
+                            ? <span style={{fontSize:10,color:"#ef4444"}}>撈取失敗</span>
+                            : res.available?.length>0
+                            ? <span style={{fontSize:10,color:"#4ade80"}}>✅ {res.available.length}段有空</span>
+                            : <span style={{fontSize:10,color:"#64748b"}}>❌ 全滿</span>}
+                        </div>
+                        {res.available?.length>0 && (
+                          <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                            {res.available.map(t=>(
+                              <a key={t} href={buildBookingUrl(v.lid,d)} target="_blank" rel="noreferrer"
+                                style={{fontSize:11,fontWeight:600,padding:"3px 9px",borderRadius:6,
+                                  background:"rgba(74,222,128,0.1)",color:"#4ade80",
+                                  border:"1px solid rgba(74,222,128,0.3)",textDecoration:"none"}}>
+                                {t} ↗
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
