@@ -1,23 +1,15 @@
 {
-    "buildCommand": "npm run build",
-    "outputDirectory": "dist",
-    "git": {
-          "deploymentEnabled": {
-                  "main": true
-          }
-    },
-    "routes": [
-          {
-                  "src": "/api/slots",
-                  "dest": "/api/slots.js"
-          },
-          {
-                  "src": "/api/.*",
-                  "dest": "/api"
-          },
-          {
-                  "src": "/(.*)",
-                  "dest": "/index.html"
-          }
-    ]
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist",
+      "git": {
+              "deploymentEnabled": {
+                        "main": true
+              }
+      },
+      "rewrites": [
+              {
+                        "source": "/((?!api).*)",
+                        "destination": "/index.html"
+              }
+      ]
 }
