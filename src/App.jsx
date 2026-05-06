@@ -36,11 +36,11 @@ const VENUES = [
   {id:"shilin",     name:"士林運動中心",   city:"台北市",district:"士林區",  address:"台北市士林區士商路1號",           floor:"7F",courts:10,adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2880-6066",bookingUrl:"https://www.slsc-taipei.org/",                     officialUrl:"https://www.slsc-taipei.org",    openHours:"07:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1–B3收費(NT$30/30分)","有，免費","有，免費"),   photos:[PHOTOS[0],PHOTOS[2]],reviews:RV("7樓燈光專業等級，超過癮",5,"士林球友","預約後當天不能取消要注意",4,"常客"),lat:25.088,lng:121.524},
   {id:"xinyi",      name:"信義運動中心",   city:"台北市",district:"信義區",  address:"台北市信義區松仁路70號",            floor:"6F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-8786-1911",bookingUrl:"https://xysc.teamxports.com/",                     officialUrl:"https://xysc.teamxports.com",    openHours:"06:00–22:00",lighting:"專業",note:"取消需3天前線上辦理", pricing:PR_TP(),           parking:PK("信義區週邊付費停車","有，免費","有，免費"),      photos:[PHOTOS[1],PHOTOS[3]],reviews:RV("信義地段好，設施新乾淨",5,"101球友","費用稍高但品質對得起",4,"信義上班族"),lat:25.033,lng:121.565},
   {id:"datong",     name:"大同運動中心",   city:"台北市",district:"大同區",  address:"台北市大同區鄭州路1號（台北車站附近）",             floor:"5F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2592-0055",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=DTSC",   officialUrl:"https://www.dtsc-wdyg.com.tw",   openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("週邊路邊停車","無","有，免費"),                   photos:[PHOTOS[4],PHOTOS[0]],reviews:RV("大稻埕附近交通方便，場地夠用",4,"大同球友","燈光普通打夜球略暗",3,"老球友"),lat:25.063,lng:121.513},
-  {id:"zhongshan",  name:"中山運動中心",   city:"台北市",district:"中山區",  address:"台北市中山區民權東路二段69號",       floor:"4F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2596-5858",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=ZSSC",   officialUrl:"https://dasc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費停車場","有，免費","有，免費"),             photos:[PHOTOS[2],PHOTOS[5]],reviews:RV("4樓燈光專業，適合比賽練習",5,"競技球友","管理嚴格準時有效率",4,"中山上班族"),lat:25.063,lng:121.533},
-  {id:"nangang",    name:"南港運動中心",   city:"台北市",district:"南港區",  address:"台北市南港區向陽路68號",            floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2653-2279",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=NGSC",   officialUrl:"https://dasc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("地面免費停車場","有，免費","有，免費"),           photos:[PHOTOS[3],PHOTOS[1]],reviews:RV("假日場比較好搶，場地乾淨",4,"南港球友","停車超方便免費",5,"開車族"),lat:25.054,lng:121.607},
-  {id:"wenshan",    name:"文山運動中心",   city:"台北市",district:"文山區",  address:"台北市文山區木柵路四段108號",        floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2230-8268",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=WSSC",   officialUrl:"https://dasc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("地面停車場","有，免費","有，免費"),               photos:[PHOTOS[5],PHOTOS[2]],reviews:RV("木柵好停車，場地寬敞",4,"家庭球友","燈光略暗，建議選早上",3,"文山球友"),lat:24.995,lng:121.568},
-  {id:"neihu",      name:"內湖運動中心",   city:"台北市",district:"內湖區",  address:"台北市內湖區文湖街20號",            floor:"4F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2656-2869",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=NHSC",   officialUrl:"https://dasc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費停車場","有，免費","有，免費"),             photos:[PHOTOS[0],PHOTOS[4]],reviews:RV("科技園區旁下班順路，場地新乾淨",5,"科技業球友","4樓燈光是專業賽事等級",5,"內湖居民"),lat:25.074,lng:121.587},
-  {id:"zhongzheng", name:"中正運動中心",   city:"台北市",district:"中正區",  address:"台北市中正區汀州路三段70號",         floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2375-0888",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=ZZSC",   officialUrl:"https://www.wsjjsc.com.tw",      openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("週邊付費停車場","無","有，免費"),                 photos:[PHOTOS[3],PHOTOS[5]],reviews:RV("師大附近氣氛輕鬆",4,"師大球友","捷運步行即到",4,"通勤球友"),lat:25.032,lng:121.518},
+  {id:"zhongshan",  name:"中山運動中心",   city:"台北市",district:"中山區",  address:"台北市中山區民權東路二段69號",       floor:"4F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2596-5858",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=ZSSC",   officialUrl:"https://cssc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費停車場","有，免費","有，免費"),             photos:[PHOTOS[2],PHOTOS[5]],reviews:RV("4樓燈光專業，適合比賽練習",5,"競技球友","管理嚴格準時有效率",4,"中山上班族"),lat:25.063,lng:121.533},
+  {id:"nangang",    name:"南港運動中心",   city:"台北市",district:"南港區",  address:"台北市南港區向陽路68號",            floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2653-2279",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=NGSC",   officialUrl:"https://ngsc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("地面免費停車場","有，免費","有，免費"),           photos:[PHOTOS[3],PHOTOS[1]],reviews:RV("假日場比較好搶，場地乾淨",4,"南港球友","停車超方便免費",5,"開車族"),lat:25.054,lng:121.607},
+  {id:"wenshan",    name:"文山運動中心",   city:"台北市",district:"文山區",  address:"台北市文山區興隆路三段222號",        floor:"6F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2230-8268",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=WSSC",   officialUrl:"https://wssc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("地面停車場","有，免費","有，免費"),               photos:[PHOTOS[5],PHOTOS[2]],reviews:RV("木柵好停車，場地寬敞",4,"家庭球友","燈光略暗，建議選早上",3,"文山球友"),lat:24.995,lng:121.568},
+  {id:"neihu",      name:"內湖運動中心",   city:"台北市",district:"內湖區",  address:"台北市內湖區文湖街20號",            floor:"4F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2656-2869",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=NHSC",   officialUrl:"https://nhsc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費停車場","有，免費","有，免費"),             photos:[PHOTOS[0],PHOTOS[4]],reviews:RV("科技園區旁下班順路，場地新乾淨",5,"科技業球友","4樓燈光是專業賽事等級",5,"內湖居民"),lat:25.074,lng:121.587},
+  {id:"zhongzheng", name:"中正運動中心",   city:"台北市",district:"中正區",  address:"台北市中正區汀州路三段70號",         floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2375-0888",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=JJSC",   officialUrl:"https://www.wsjjsc.com.tw",      openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("週邊付費停車場","無","有，免費"),                 photos:[PHOTOS[3],PHOTOS[5]],reviews:RV("師大附近氣氛輕鬆",4,"師大球友","捷運步行即到",4,"通勤球友"),lat:25.032,lng:121.518},
   {id:"tsc",        name:"台北市網球中心", city:"台北市",district:"內湖區",  address:"台北市內湖區民善街1號",             floor:"2F",courts:6, adv:7, sh:6, minD:1, onsiteOnly:false,phone:"02-2795-1166",bookingUrl:"https://www.tsc.taipei/",                          officialUrl:"https://www.tsc.taipei",         openHours:"06:00–22:00",lighting:"專業",note:"06:00起開放，尖峰需租2小時",payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP("（需租2小時）"),parking:PK("地面免費停車（2小時）","有，免費","有，免費"),photos:[PHOTOS[1],PHOTOS[3]],reviews:RV("設施一流，燈光真正專業賽事等級",5,"進階球友","尖峰需租2小時，但場地頂尖",4,"週末球友"),lat:25.075,lng:121.580},
   {id:"cyc",        name:"青年活動中心",   city:"台北市",district:"內湖區",  address:"台北市內湖區康寧路三段109號",        floor:"2F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2796-3558",bookingUrl:"https://scr.cyc.org.tw/tp02.aspx?module=net_booking&files=booking_before&PT=1",officialUrl:"https://scr.cyc.org.tw",openHours:"07:00–22:00",lighting:"普通",note:null,pricing:PR_TP(),parking:PK("地面停車(NT$20/30分)","有，免費","有，免費"),photos:[PHOTOS[4],PHOTOS[0]],reviews:RV("CP值高，費用合理，場地乾淨",4,"省錢球友","當天也能訂，臨時起意最佳",5,"內湖球友"),lat:25.073,lng:121.593},
   {id:"yonghe",     name:"永和運動中心",   city:"新北市",district:"永和區",  address:"新北市永和區永和路二段25號",         floor:"3F",courts:8, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2926-1885",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面停車場","有，免費","有，免費"),               photos:[PHOTOS[2],PHOTOS[4]],reviews:RV("離台北近費用便宜，值得跨縣市",4,"中和球友","假日比台北好搶",4,"新北球友"),lat:25.008,lng:121.516},
@@ -104,7 +104,7 @@ const dlICS = (evts, name) => {
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [now, setNow]               = useState(new Date());
-  const [tab, setTab]               = useState("now");
+  const [tab, setTab]               = useState("realtime");
   const [favs, setFavs]             = useState(new Set());
   const [todayClicked, setTodayClicked] = useState(new Set());
   const [toast, setToast]           = useState("");
@@ -119,77 +119,469 @@ export default function App() {
         <div style={{display:"flex",alignItems:"center",gap:9,padding:"13px 14px 7px"}}>
           <span style={{fontSize:22}}>🏸</span>
           <div>
-            <div style={{fontSize:14,fontWeight:700}}>台北羽球搶場助手</div>
-            <div style={{fontSize:10,color:"#64748b"}}>
+            <div style={{fontSize:16,fontWeight:700,color:"#e2e8f0"}}>台北羽球助手</div>
+            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V26.5.6.1</div>
+            <div style={{fontSize:10,color:"#64748b",display:"flex",gap:6}}>
               {now.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"short"})} {now.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}
             </div>
           </div>
         </div>
         <div style={S.tabBar}>
-          {[["now","🟢 目前可搶"],["plan","📅 搶場計畫"]].map(([v,l]) => (
+          {[["realtime","⚡ 即時空位"],["lucky","📋 已開放預約"],["plan","📅 搶場計畫"]].map(([v,l]) => (
             <button key={v} onClick={()=>setTab(v)} style={{...S.tab,...(tab===v?S.tabOn:{})}}>{l}</button>
           ))}
         </div>
       </div>
       <div style={S.body}>
-        {tab==="now"  && <NowTab  now={now} weekends={weekends} favs={favs} togFav={togFav} todayClicked={todayClicked} markClicked={markClicked} showToast={showToast}/>}
-        {tab==="plan" && <PlanTab now={now} favs={favs} showToast={showToast}/>}
+        {tab==="realtime" && <RealtimeTab now={now} showToast={showToast} favs={favs} togFav={togFav} todayClicked={todayClicked} markClicked={markClicked}/>}
+        {tab==="lucky"    && <LuckyTab    now={now} weekends={weekends} showToast={showToast} favs={favs} togFav={togFav} todayClicked={todayClicked} markClicked={markClicked}/>}
+        {tab==="plan"     && <PlanTab     now={now} favs={favs} showToast={showToast}/>}
       </div>
       {toast && <div style={S.toast}>{toast}</div>}
     </div>
   );
 }
 
-// ── NowTab ────────────────────────────────────────────────────────────────────
-function NowTab({ now, weekends, favs, togFav, todayClicked, markClicked, showToast }) {
+
+// ── LuckyTab: non-LID venues grouped by until-date, collapsible ───────────────
+const NON_LID_IDS = ["daan","wanhua","beitou","shilin","xinyi","datong","zhongshan","nangang","tsc","cyc",
+  "yonghe","banqiao","zhonghe","xindian","xizhi","sanchong","xinzhuang"];
+
+function LuckyTab({ now, weekends, showToast, favs, togFav, todayClicked, markClicked }) {
   const [mapMode, setMapMode] = useState(false);
-  const [loc, setLoc]         = useState(null);
-  const getLoc = () => navigator.geolocation?.getCurrentPosition(
-    p => { setLoc({lat:p.coords.latitude,lng:p.coords.longitude}); showToast("已取得位置"); },
-    () => showToast("無法取得位置")
-  );
-
-  // 只顯示現在真的可以搶的場館
-  const hotVenues = VENUES.filter(v => weekends.some(d => canNow(v,d,now)));
-
-  // 依 adv 分組（取代台北/新北分類），取最大 adv 做分組 key
-  const groups = {};
-  hotVenues.forEach(v => {
+  // Build groups by adv (until date)
+  const venues = VENUES.filter(v => NON_LID_IDS.includes(v.id));
+  const groupMap = {};
+  venues.forEach(v => {
+    if (!v.adv) {
+      const k = "onsite";
+      if (!groupMap[k]) groupMap[k] = { adv:null, until:null, venues:[] };
+      groupMap[k].venues.push(v);
+      return;
+    }
     const until = getUntil(v.adv, now);
     const k = until.toISOString();
-    if (!groups[k]) groups[k] = { until, adv:v.adv, venues:[] };
-    groups[k].venues.push(v);
+    if (!groupMap[k]) groupMap[k] = { adv:v.adv, until, venues:[] };
+    groupMap[k].venues.push(v);
   });
-  // 依 until 時間由大到小排（可預約越久的在前）
-  const groupList = Object.values(groups).sort((a,b) => b.adv - a.adv);
+  const groups = Object.values(groupMap).sort((a,b) => {
+    if (!a.until) return 1;
+    if (!b.until) return -1;
+    return b.adv - a.adv;
+  });
 
   if (mapMode) {
     return (
       <div>
         <button onClick={()=>setMapMode(false)} style={{...S.chip,marginBottom:10}}>← 返回列表</button>
-        <MapView venues={hotVenues} now={now} weekends={weekends} favs={favs} togFav={togFav}
-          todayClicked={todayClicked} markClicked={markClicked} showToast={showToast} loc={loc}/>
+        <MapView venues={venues} now={now} weekends={weekends} favs={favs||new Set()}
+          togFav={togFav||(()=>{})} todayClicked={todayClicked||new Set()}
+          markClicked={markClicked||(()=>{})} showToast={showToast} loc={null}/>
       </div>
     );
   }
 
   return (
     <div>
-      <div style={{display:"flex",gap:6,marginBottom:12}}>
-        <button onClick={()=>setMapMode(true)} style={S.chip}>🗺 地圖模式</button>
-        <button onClick={getLoc} style={{...S.chip,...(loc?S.chipOn:{})}}>📍 距離排序</button>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+        <div style={{
+          flex:1,background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.2)",
+          borderRadius:10,padding:"8px 12px",fontSize:11,color:"#fbbf24",lineHeight:1.6,
+        }}>
+          ⚠️ 規則推算，非即時查詢。實際空位請至官網確認。
+        </div>
+        <button onClick={()=>setMapMode(true)} style={{
+          marginLeft:8,padding:"10px 13px",borderRadius:10,border:"1px solid #1e293b",
+          background:"transparent",color:"#64748b",fontSize:13,cursor:"pointer",flexShrink:0,
+        }}>🗺</button>
       </div>
-
-      {hotVenues.length === 0 && (
-        <div style={S.empty}>目前沒有可立即網路預約的場館<br/>請至「搶場計畫」查詢下次開搶時間</div>
-      )}
-
-      {groupList.map(g => (
-        <CollapsibleGroup key={g.until.toISOString()} g={g} now={now} weekends={weekends} favs={favs} togFav={togFav} todayClicked={todayClicked} markClicked={markClicked} showToast={showToast} loc={loc}/>
+      {groups.map((g,gi) => (
+        <LuckyGroup key={gi} g={g} now={now} weekends={weekends}
+          favs={favs} togFav={togFav} todayClicked={todayClicked}
+          markClicked={markClicked} showToast={showToast}/>
       ))}
     </div>
   );
 }
+
+function LuckyGroup({ g, now, weekends, favs, togFav, todayClicked, markClicked, showToast }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const label = g.until ? `可預約到 ${fmtD(g.until)}` : "僅電話/現場預約";
+  const col   = g.until ? "#4ade80" : "#f59e0b";
+  return (
+    <div style={{marginBottom:16}}>
+      <button onClick={()=>setCollapsed(c=>!c)} style={{
+        width:"100%",display:"flex",alignItems:"center",gap:8,padding:"8px 12px",
+        borderRadius:10,border:`1px solid ${col}33`,
+        background:`rgba(${g.until?"74,222,128":"245,158,11"},0.06)`,
+        cursor:"pointer",textAlign:"left",marginBottom:collapsed?0:8,
+      }}>
+        <span style={{width:8,height:8,borderRadius:"50%",background:col,display:"inline-block",flexShrink:0,boxShadow:`0 0 5px ${col}`}}/>
+        <span style={{fontSize:13,fontWeight:700,color:col,flex:1}}>{label}</span>
+        <span style={{fontSize:11,color:"#475569"}}>{g.venues.length} 個場館</span>
+        <span style={{fontSize:11,color:col}}>{collapsed?"▶":"▼"}</span>
+      </button>
+      {!collapsed && (
+        <div>
+          {g.venues.map(v => (
+            <VCard key={v.id} v={v} now={now} weekends={weekends}
+              favs={favs} togFav={togFav}
+              todayClicked={todayClicked} markClicked={markClicked}
+              showToast={showToast} loc={null}/>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── RealtimeTab ───────────────────────────────────────────────────────────────
+const LID_VENUES = [
+  { id:"wenshan",   name:"文山運動中心", lid:"WSSC", district:"文山區" },
+  { id:"neihu",     name:"內湖運動中心", lid:"NHSC", district:"內湖區" },
+  { id:"zhongzheng",name:"中正運動中心", lid:"JJSC", district:"中正區" },
+];
+
+const PROXIES = [
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  url => `https://thingproxy.freeboard.io/fetch/${url}`,
+];
+const JSON_API_PATHS = [
+  (lid,ds) => `https://booking-tpsc.sporetrofit.com/BookingNew/GetBookingList?LID=${lid}&CategoryId=Badminton&UseDate=${ds}&rows=100`,
+  (lid,ds) => `https://booking-tpsc.sporetrofit.com/Location/GetBookingList?LID=${lid}&CategoryId=Badminton&UseDate=${ds}&rows=100`,
+];
+
+function buildBookingUrl(lid, date) {
+  const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+  return `https://booking-tpsc.sporetrofit.com/Location/BookingList?LID=${lid}&CategoryId=Badminton&UseDate=${ds}`;
+}
+
+function parseSlots(html, dow) {
+  const doc  = new DOMParser().parseFromString(html,"text/html");
+  const rows = Array.from(doc.querySelectorAll("table tr")).slice(1);
+  if (!rows.length) return null;
+  const avail = new Set(), booked = new Set();
+  rows.forEach(tr => {
+    const cells = tr.querySelectorAll("td");
+    if (cells.length < 5) return;
+    const time   = cells[3]?.textContent?.trim();
+    const status = cells[4]?.textContent?.trim();
+    if (!time) return;
+    const t = time.replace(" - ","–").replace("- ","–").replace(" -","–");
+    if (status?.includes("預約") && !status?.includes("已被")) avail.add(t);
+    else if (status?.includes("已被") || status?.includes("滿")) booked.add(t);
+  });
+  const f = t => dow !== 5 || parseInt(t.split(":")[0]) >= 18;
+  return { available:[...avail].filter(f).sort(), booked:[...booked].sort(), total:rows.length };
+}
+
+async function tryFetchSlots(lid, date) {
+  const ds  = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+  const dow = date.getDay();
+
+  // Try Vercel backend first (most reliable, no CORS)
+  try {
+    const r = await fetch(`/api/slots?lid=${lid}&date=${ds}`, { signal:AbortSignal.timeout(8000) });
+    if (r.ok) {
+      const j = await r.json();
+      if (j.total > 0 || j.available) {
+        let avail = j.available || [];
+        if (dow === 5) avail = avail.filter(t => parseInt(t.split(":")[0]) >= 18);
+        return { available:avail, booked:j.booked||[], total:j.total, via:"server" };
+      }
+    }
+  } catch(_) {}
+
+  for (const apiPath of JSON_API_PATHS) {
+    try {
+      const r = await fetch(apiPath(lid,ds),{signal:AbortSignal.timeout(5000)});
+      if (r.ok) {
+        const ct = r.headers.get("content-type")||"";
+        if (ct.includes("json")) {
+          const j = await r.json();
+          const items = j.rows||j.data||j.items||j||[];
+          if (Array.isArray(items)&&items.length>0) {
+            const avail=new Set(),booked=new Set();
+            items.forEach(item=>{
+              const time=item.UseTime||item.useTime||item.time||"";
+              const st=String(item.BookStatus||item.status||"");
+              if(!time) return;
+              const t=time.replace(" - ","–");
+              if(dow===5&&parseInt(t.split(":")[0])<18) return;
+              if(st.includes("1")||st.toLowerCase().includes("avail")) avail.add(t);
+              else booked.add(t);
+            });
+            if(avail.size||booked.size) return{available:[...avail].sort(),booked:[...booked].sort(),total:items.length,via:"api"};
+          }
+        }
+        const html=await r.text();
+        const p=parseSlots(html,dow);
+        if(p&&p.total>0) return{...p,via:"direct"};
+      }
+    } catch(_){}
+  }
+  for (const mkProxy of PROXIES) {
+    try {
+      const r=await fetch(mkProxy(buildBookingUrl(lid,date)),{signal:AbortSignal.timeout(10000)});
+      if(!r.ok) continue;
+      const ct=r.headers.get("content-type")||"";
+      let html="";
+      if(ct.includes("json")){const j=await r.json();html=j.contents||j.body||"";}
+      else html=await r.text();
+      const p=parseSlots(html,dow);
+      if(p&&p.total>0) return{...p,via:"proxy"};
+    } catch(_){}
+  }
+  throw new Error("all failed");
+}
+
+function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }) {
+  const weekendDates  = getNextWeekendDates(now);
+  const [scanning, setScanning] = useState(false);
+  const [results,  setResults]  = useState({});
+  const [mapMode,  setMapMode]  = useState(false);
+
+  const scan = async () => {
+    setScanning(true);
+    const out = {};
+    for (const v of LID_VENUES) {
+      const d = weekendDates[0]; // scan first upcoming date
+      try {
+        out[v.lid] = await tryFetchSlots(v.lid, d);
+      } catch(e) {
+        out[v.lid] = { available:[], booked:[], error:true };
+      }
+      setResults({...out});
+    }
+    setScanning(false);
+    const ok = Object.values(out).filter(r=>!r.error).length;
+    showToast(ok>0?`掃描完成，${ok}個場館有資料`:"掃描失敗，請手動查看");
+  };
+
+  if (mapMode) {
+    const lidData = VENUES.filter(v=>LID_VENUES.some(l=>l.id===v.id));
+    return (
+      <div>
+        <button onClick={()=>setMapMode(false)} style={{...S.chip,marginBottom:10}}>← 返回</button>
+        <MapView venues={lidData} now={now} weekends={weekendDates} favs={favs}
+          togFav={togFav} todayClicked={todayClicked} markClicked={markClicked}
+          showToast={showToast} loc={null}/>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Top action buttons */}
+      <div style={{display:"flex",gap:8,marginBottom:14}}>
+        <button onClick={scan} disabled={scanning} style={{
+          flex:1,padding:"12px",borderRadius:11,border:"1px solid rgba(59,130,246,0.3)",
+          background:scanning?"#111827":"rgba(59,130,246,0.08)",
+          color:scanning?"#64748b":"#60a5fa",fontSize:13,fontWeight:700,cursor:scanning?"wait":"pointer",
+          display:"flex",alignItems:"center",justifyContent:"center",gap:6,
+        }}>
+          <span style={{display:"inline-block",animation:scanning?"spin 1s linear infinite":"none"}}>
+            {scanning?"⟳":"🔍"}
+          </span>
+          {scanning?"掃描中…":"自動掃描空位"}
+        </button>
+        <button onClick={()=>setMapMode(true)} style={{
+          padding:"12px 14px",borderRadius:11,border:"1px solid #1e293b",
+          background:"transparent",color:"#64748b",fontSize:12,fontWeight:600,cursor:"pointer",
+          display:"flex",alignItems:"center",gap:5,
+        }}>🗺 地圖檢視</button>
+      </div>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+
+      {/* Scan results banner */}
+      {Object.keys(results).length>0 && (
+        <div style={{marginBottom:14,background:"#0a1018",borderRadius:11,padding:"10px 13px",border:"1px solid #1e293b"}}>
+          <div style={{fontSize:10,color:"#64748b",marginBottom:6}}>掃描結果</div>
+          <div style={{display:"flex",flexDirection:"column",gap:4}}>
+            {LID_VENUES.map(v=>{
+              const res=results[v.lid]; if(!res) return null;
+              return (
+                <div key={v.lid} style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontSize:12,color:"#94a3b8"}}>{v.name}</span>
+                  {res.error
+                    ? <span style={{fontSize:11,color:"#ef4444"}}>撈取失敗</span>
+                    : res.available?.length>0
+                    ? <div style={{display:"flex",flexWrap:"wrap",gap:3,justifyContent:"flex-end"}}>
+                        {res.available.map(t=><span key={t} style={{fontSize:10,padding:"2px 7px",borderRadius:5,background:"rgba(74,222,128,0.1)",color:"#4ade80",border:"1px solid rgba(74,222,128,0.25)"}}>{t}</span>)}
+                      </div>
+                    : <span style={{fontSize:11,color:"#64748b"}}>全滿</span>
+                  }
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Venue cards - same style as 已開放預約, date chips = manual links */}
+      {LID_VENUES.map(v => (
+        <RealtimeVCard key={v.id} v={VENUES.find(vv=>vv.id===v.id)} lid={v.lid}
+          now={now} weekendDates={weekendDates} favs={favs} togFav={togFav}
+          todayClicked={todayClicked} markClicked={markClicked} showToast={showToast}/>
+      ))}
+    </div>
+  );
+}
+
+// VCard for realtime tab - date chips = direct booking links
+function RealtimeVCard({ v, lid, now, weekendDates, favs, togFav, todayClicked, markClicked, showToast }) {
+  const [open, setOpen] = useState(false);
+  if (!v) return null;
+  const isFav  = favs?.has(v.id);
+  const booked = todayClicked?.has(v.id);
+  const lightCol = {"專業":"#4ade80","普通":"#fbbf24","偏暗":"#f87171"}[v.lighting]||"#94a3b8";
+  const dayName = d => ["日","一","二","三","四","五","六"][d.getDay()];
+  const dayCol  = d => DAY_COLOR[d.getDay()];
+
+  return (
+    <div style={{...S.card,...(isFav?{borderColor:"rgba(251,191,36,0.22)"}:{})}}>
+      <div style={{padding:"11px 12px 8px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+              <span style={{fontSize:14,fontWeight:700}}>{v.name}</span>
+              {isFav && <span>⭐</span>}
+              {booked && <span style={{fontSize:10,color:"#64748b",background:"#1e293b",padding:"1px 6px",borderRadius:5}}>今日已點</span>}
+            </div>
+            <div style={{fontSize:11,color:"#64748b",marginTop:2}}>{v.floor} · {v.courts}面 · {v.openHours}</div>
+            <div style={{fontSize:11,color:"#475569",marginTop:2,display:"flex",alignItems:"center",flexWrap:"wrap",gap:5}}>
+              <span>📍 {v.address}</span>
+              <a href={v.officialUrl} target="_blank" rel="noreferrer"
+                style={{fontSize:10,padding:"2px 8px",borderRadius:6,background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",textDecoration:"none"}}>
+                官網↗
+              </a>
+            </div>
+          </div>
+          <button onClick={()=>togFav&&togFav(v.id)}
+            style={{background:"none",border:"none",cursor:"pointer",fontSize:18,padding:"2px 4px",color:isFav?"#fbbf24":"#334155"}}>
+            {isFav?"⭐":"☆"}
+          </button>
+        </div>
+
+        {/* 可預約到 */}
+        {v.adv && (
+          <div style={{marginTop:6,padding:"5px 9px",borderRadius:7,background:"rgba(96,165,250,0.07)",display:"flex",alignItems:"center"}}>
+            <span style={{fontSize:10,color:"#64748b"}}>可預約到</span>
+            <span style={{fontSize:12,fontWeight:700,color:"#93c5fd",marginLeft:5}}>{fmtD(getUntil(v.adv,now))}</span>
+          </div>
+        )}
+
+        {/* Date chips as booking links */}
+        <div style={{display:"flex",flexWrap:"wrap",gap:5,marginTop:8}}>
+          {weekendDates.map(d => {
+            const col = dayCol(d);
+            const url = buildBookingUrl(lid, d);
+            return (
+              <a key={d.toISOString()} href={url} target="_blank" rel="noreferrer"
+                onClick={()=>showToast&&showToast(`開啟 ${v.name} ${d.getMonth()+1}/${d.getDate()} 預約頁`)}
+                style={{
+                  padding:"5px 10px",borderRadius:8,textDecoration:"none",textAlign:"center",minWidth:60,
+                  border:`1px solid ${col}55`,background:`rgba(${col==="4ade80"?"74,222,128":col==="6366f1"?"99,102,241":"96,165,250"},0.07)`,
+                  color:col,
+                }}>
+                <div style={{fontWeight:700,fontSize:11}}>{d.getMonth()+1}/{d.getDate()}（{dayName(d)}）</div>
+                <div style={{fontSize:9,marginTop:1,opacity:0.8}}>手動查看↗</div>
+              </a>
+            );
+          })}
+        </div>
+
+        {v.note && <div style={{...S.note,marginTop:7}}>📌 {v.note}</div>}
+      </div>
+
+      {/* Phone + booking */}
+      <div style={S.cardBtns}>
+        <a href={`tel:${v.phone}`} style={S.phoneBtn}>📞 {v.phone}</a>
+        <a href={v.bookingUrl} target="_blank" rel="noreferrer" onClick={()=>markClicked&&markClicked(v.id)}
+          style={{...S.bookBtn,...(booked?{background:"rgba(100,116,139,0.1)",borderColor:"#334155",color:"#64748b"}:{})}}>
+          {booked?"✅ 今日已點過":"前往預約 →"}
+        </a>
+      </div>
+
+      <button onClick={()=>setOpen(o=>!o)} style={S.expandBtn}>
+        {open?"▲ 收起詳情":"▼ 詳情（照片、費用、停車、評論）"}
+      </button>
+
+      {open && (
+        <div style={{padding:"12px 12px 14px",borderTop:"1px solid #1e293b"}}>
+          {/* Photos */}
+          <div style={{display:"flex",gap:7,overflowX:"auto",marginBottom:12}}>
+            {v.photos.map((p,i)=>(
+              <img key={i} src={p} alt={v.name}
+                style={{width:160,height:107,objectFit:"cover",borderRadius:9,flexShrink:0}}
+                onError={e=>e.target.style.display="none"}/>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+            <span style={{fontSize:11,padding:"4px 9px",borderRadius:7,color:lightCol,border:`1px solid ${lightCol}44`,background:"rgba(0,0,0,0.25)"}}>💡 燈光：{v.lighting}</span>
+            <a href={`https://www.google.com/maps/search/${encodeURIComponent(v.name+" "+v.district)}`}
+              target="_blank" rel="noreferrer"
+              style={{fontSize:11,padding:"4px 9px",borderRadius:7,background:"rgba(96,165,250,0.08)",color:"#60a5fa",textDecoration:"none",border:"1px solid rgba(96,165,250,0.25)"}}>
+              🧭 Google地圖
+            </a>
+          </div>
+          {/* Pricing */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>時段費用</div>
+            {v.pricing.map((p,i)=>(
+              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"7px 10px",borderRadius:8,background:i%2?"#0a1018":"#0d1520",marginBottom:3}}>
+                <div>
+                  <span style={{fontSize:12,fontWeight:700,color:i===0?"#93c5fd":"#f97316"}}>{p.label}</span>
+                  <div style={{fontSize:10,color:"#64748b",marginTop:1}}>{p.times}</div>
+                </div>
+                <span style={{fontSize:12,fontWeight:700,color:"#e2e8f0",whiteSpace:"nowrap",marginLeft:8}}>{p.price}</span>
+              </div>
+            ))}
+          </div>
+          {/* Parking */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>停車資訊</div>
+            {[["🚗 汽車",v.parking.car],["🏍 室內機車",v.parking.motoIn],["🏍 室外機車",v.parking.motoOut]].map(([label,val])=>(
+              <div key={label} style={{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid #1e293b"}}>
+                <span style={{fontSize:11,color:"#64748b",minWidth:76}}>{label}</span>
+                <span style={{fontSize:11,color:"#94a3b8"}}>{val}</span>
+              </div>
+            ))}
+          </div>
+          {/* Reviews */}
+          <div>
+            <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>精選評論</div>
+            {v.reviews.map((r,i)=>(
+              <div key={i} style={{padding:"8px 10px",borderRadius:8,background:"#0a1018",marginBottom:5}}>
+                <div style={{fontSize:11,color:"#e2e8f0",lineHeight:1.6}}>「{r.text}」</div>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                  <span style={{fontSize:10,color:"#64748b"}}>— {r.author}</span>
+                  <span style={{fontSize:10}}>{"⭐".repeat(r.stars)}</span>
+                </div>
+              </div>
+            ))}
+            <a href={`https://www.google.com/maps/search/${encodeURIComponent(v.name+" "+v.district)}`}
+              target="_blank" rel="noreferrer" style={{fontSize:11,color:"#60a5fa",textDecoration:"none"}}>
+              查看 Google 完整評論 ↗
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getNextWeekendDates(now) {
+  const result = [], d = new Date(now);
+  d.setHours(0,0,0,0);
+  while (result.length < 3) {
+    d.setDate(d.getDate()+1);
+    if ([5,6,0].includes(d.getDay())) result.push(new Date(d));
+  }
+  return result;
+}
+
 
 function CollapsibleGroup({ g, now, weekends, favs, togFav, todayClicked, markClicked, showToast, loc }) {
   const [collapsed, setCollapsed] = useState(false);
