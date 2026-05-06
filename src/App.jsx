@@ -278,49 +278,83 @@ function parseSlots(html, dow) {
 
 async function tryFetchSlots(lid, date) {
   const ds  = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-  const dow = date.getDay();
-  for (const apiPath of JSON_API_PATHS) {
-    try {
-      const r = await fetch(apiPath(lid,ds),{signal:AbortSignal.timeout(5000)});
-      if (r.ok) {
-        const ct = r.headers.get("content-type")||"";
-        if (ct.includes("json")) {
-          const j = await r.json();
-          const items = j.rows||j.data||j.items||j||[];
-          if (Array.isArray(items)&&items.length>0) {
-            const avail=new Set(),booked=new Set();
-            items.forEach(item=>{
-              const time=item.UseTime||item.useTime||item.time||"";
-              const st=String(item.BookStatus||item.status||"");
-              if(!time) return;
-              const t=time.replace(" - ","–");
-              if(dow===5&&parseInt(t.split(":")[0])<18) return;
-              if(st.includes("1")||st.toLowerCase().includes("avail")) avail.add(t);
-              else booked.add(t);
-            });
-            if(avail.size||booked.size) return{available:[...avail].sort(),booked:[...booked].sort(),total:items.length,via:"api"};
-          }
-        }
-        const html=await r.text();
-        const p=parseSlots(html,dow);
-        if(p&&p.total>0) return{...p,via:"direct"};
+
+  // Method 1: Direct browser call (uses browser session - best chance)
+  try {
+    const directUrl = `https://booking-tpsc.sporetrofit.com/Location/findAllowBookingList?LID=${lid}&categoryId=Badminton&useDate=${ds}`;
+    const r = await fetch(directUrl, {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Referer": `https://booking-tpsc.sporetrofit.com/Location/BookingList?LID=${lid}&CategoryId=Badminton&UseDate=${ds}`,
+      },
+      credentials: "include",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (r.ok) {
+      const ct = r.headers.get("content-type") || "";
+      if (ct.includes("json")) {
+        const data = await r.json();
+        const arr = Array.isArray(data) ? data : data.data||data.rows||data.list||[];
+        const seen = new Set(), avail = [];
+        arr.forEach(item => {
+          const raw = item.UseTime||item.useTime||item.time||item.Time||item.startTime||"";
+          if (!raw) return;
+          const t = raw.toString().replace(" - ","–").replace("- ","–").replace(" -","–").trim();
+          if (!seen.has(t)) { seen.add(t); avail.push(t); }
+        });
+        avail.sort();
+        return { available:avail, total:arr.length, via:"direct" };
       }
-    } catch(_){}
-  }
+    }
+  } catch(_) {}
+
+  // Method 2: Vercel backend proxy
+  try {
+    const r = await fetch(`/api/slots?lid=${lid}&date=${ds}`, { signal:AbortSignal.timeout(10000) });
+    if (r.ok) {
+      const j = await r.json();
+      if (Array.isArray(j.available)) {
+        return { available:j.available, total:j.total||0, via:"server" };
+      }
+    }
+  } catch(_) {}
+
+  // Method 3: CORS proxies
   for (const mkProxy of PROXIES) {
     try {
-      const r=await fetch(mkProxy(buildBookingUrl(lid,date)),{signal:AbortSignal.timeout(10000)});
-      if(!r.ok) continue;
-      const ct=r.headers.get("content-type")||"";
-      let html="";
-      if(ct.includes("json")){const j=await r.json();html=j.contents||j.body||"";}
-      else html=await r.text();
-      const p=parseSlots(html,dow);
-      if(p&&p.total>0) return{...p,via:"proxy"};
-    } catch(_){}
+      const targetUrl = `https://booking-tpsc.sporetrofit.com/Location/findAllowBookingList?LID=${lid}&categoryId=Badminton&useDate=${ds}`;
+      const r = await fetch(mkProxy(targetUrl), { signal:AbortSignal.timeout(10000) });
+      if (!r.ok) continue;
+      const ct = r.headers.get("content-type") || "";
+      let text = "";
+      if (ct.includes("json")) {
+        const j = await r.json();
+        text = j.contents || j.body || JSON.stringify(j);
+      } else {
+        text = await r.text();
+      }
+      try {
+        const data = JSON.parse(text);
+        const arr = Array.isArray(data) ? data : data.data||data.rows||data.list||[];
+        if (arr.length >= 0) {
+          const seen = new Set(), avail = [];
+          arr.forEach(item => {
+            const raw = item.UseTime||item.useTime||item.time||item.Time||item.startTime||"";
+            if (!raw) return;
+            const t = raw.toString().replace(" - ","–").replace("- ","–").replace(" -","–").trim();
+            if (!seen.has(t)) { seen.add(t); avail.push(t); }
+          });
+          avail.sort();
+          return { available:avail, total:arr.length, via:"proxy" };
+        }
+      } catch(_) {}
+    } catch(_) {}
   }
-  throw new Error("all failed");
+
+  throw new Error("all methods failed");
 }
+
 
 function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }) {
   const weekendDates  = getNextWeekendDates(now);
