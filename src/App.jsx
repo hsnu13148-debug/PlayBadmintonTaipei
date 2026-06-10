@@ -120,7 +120,7 @@ export default function App() {
           <span style={{fontSize:22}}>🏸</span>
           <div>
             <div style={{fontSize:16,fontWeight:700,color:"#e2e8f0"}}>台北羽球助手</div>
-            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V26.5.7</div>
+            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V2026.06.11</div>
             <div style={{fontSize:10,color:"#64748b",display:"flex",gap:6}}>
               {now.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"short"})} {now.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}
             </div>
@@ -246,118 +246,11 @@ const LID_VENUES = [
   { id:"beitou",    name:"北投運動中心", lid:"BTSC", district:"北投區" },
 ];
 
-const PROXIES = [
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-  url => `https://thingproxy.freeboard.io/fetch/${url}`,
-];
-const JSON_API_PATHS = [
-  (lid,ds) => `https://booking-tpsc.sporetrofit.com/BookingNew/GetBookingList?LID=${lid}&CategoryId=Badminton&UseDate=${ds}&rows=100`,
-  (lid,ds) => `https://booking-tpsc.sporetrofit.com/Location/GetBookingList?LID=${lid}&CategoryId=Badminton&UseDate=${ds}&rows=100`,
-];
-
 function buildBookingUrl(lid, date) {
   const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
   return `https://booking-tpsc.sporetrofit.com/Location/BookingList?LID=${lid}&CategoryId=Badminton&UseDate=${ds}`;
 }
 
-function parseSlots(html, dow) {
-  const doc  = new DOMParser().parseFromString(html,"text/html");
-  const rows = Array.from(doc.querySelectorAll("table tr")).slice(1);
-  if (!rows.length) return null;
-  const avail = new Set(), booked = new Set();
-  rows.forEach(tr => {
-    const cells = tr.querySelectorAll("td");
-    if (cells.length < 5) return;
-    const time   = cells[3]?.textContent?.trim();
-    const status = cells[4]?.textContent?.trim();
-    if (!time) return;
-    const t = time.replace(" - ","–").replace("- ","–").replace(" -","–");
-    if (status?.includes("預約") && !status?.includes("已被")) avail.add(t);
-    else if (status?.includes("已被") || status?.includes("滿")) booked.add(t);
-  });
-  const f = t => dow !== 5 || parseInt(t.split(":")[0]) >= 18;
-  return { available:[...avail].filter(f).sort(), booked:[...booked].sort(), total:rows.length };
-}
-
-async function tryFetchSlots(lid, date) {
-  const ds  = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-
-  // Method 1: Direct browser call (uses browser session - best chance)
-  try {
-    const directUrl = `https://booking-tpsc.sporetrofit.com/Location/findAllowBookingList?LID=${lid}&categoryId=Badminton&useDate=${ds}`;
-    const r = await fetch(directUrl, {
-      headers: {
-        "X-Requested-With": "XMLHttpRequest",
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "Referer": `https://booking-tpsc.sporetrofit.com/Location/BookingList?LID=${lid}&CategoryId=Badminton&UseDate=${ds}`,
-      },
-      credentials: "include",
-      signal: AbortSignal.timeout(8000),
-    });
-    if (r.ok) {
-      const ct = r.headers.get("content-type") || "";
-      if (ct.includes("json")) {
-        const data = await r.json();
-        const arr = Array.isArray(data) ? data : data.data||data.rows||data.list||[];
-        const seen = new Set(), avail = [];
-        arr.forEach(item => {
-          const raw = item.UseTime||item.useTime||item.time||item.Time||item.startTime||"";
-          if (!raw) return;
-          const t = raw.toString().replace(" - ","–").replace("- ","–").replace(" -","–").trim();
-          if (!seen.has(t)) { seen.add(t); avail.push(t); }
-        });
-        avail.sort();
-        return { available:avail, total:arr.length, via:"direct" };
-      }
-    }
-  } catch(_) {}
-
-  // Method 2: Vercel backend proxy
-  try {
-    const r = await fetch(`/api/slots?lid=${lid}&date=${ds}`, { signal:AbortSignal.timeout(10000) });
-    if (r.ok) {
-      const j = await r.json();
-      if (Array.isArray(j.available)) {
-        return { available:j.available, total:j.total||0, via:"server" };
-      }
-    }
-  } catch(_) {}
-
-  // Method 3: CORS proxies
-  for (const mkProxy of PROXIES) {
-    try {
-      const targetUrl = `https://booking-tpsc.sporetrofit.com/Location/findAllowBookingList?LID=${lid}&categoryId=Badminton&useDate=${ds}`;
-      const r = await fetch(mkProxy(targetUrl), { signal:AbortSignal.timeout(10000) });
-      if (!r.ok) continue;
-      const ct = r.headers.get("content-type") || "";
-      let text = "";
-      if (ct.includes("json")) {
-        const j = await r.json();
-        text = j.contents || j.body || JSON.stringify(j);
-      } else {
-        text = await r.text();
-      }
-      try {
-        const data = JSON.parse(text);
-        const arr = Array.isArray(data) ? data : data.data||data.rows||data.list||[];
-        if (arr.length >= 0) {
-          const seen = new Set(), avail = [];
-          arr.forEach(item => {
-            const raw = item.UseTime||item.useTime||item.time||item.Time||item.startTime||"";
-            if (!raw) return;
-            const t = raw.toString().replace(" - ","–").replace("- ","–").replace(" -","–").trim();
-            if (!seen.has(t)) { seen.add(t); avail.push(t); }
-          });
-          avail.sort();
-          return { available:avail, total:arr.length, via:"proxy" };
-        }
-      } catch(_) {}
-    } catch(_) {}
-  }
-
-  throw new Error("all methods failed");
-}
 
 
 function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }) {
@@ -365,56 +258,68 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
   const [scanning, setScanning] = useState(false);
   const [results,  setResults]  = useState({});
   const [mapMode,  setMapMode]  = useState(false);
+  const [scanRange, setScanRange] = useState("weekend"); // weekend | 7d | 14d
 
   const [scanProgress, setScanProgress] = useState(""); // e.g. "文山 5/9 ✓"
+
+  const getScanDates = () => {
+    if (scanRange === "weekend") return weekendDates;
+    const n = scanRange === "7d" ? 7 : 14;
+    return Array.from({length:n}, (_,i) => addDays(sod(now), i));
+  };
+
+  const scanOneDate = async (d, out) => {
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    out[ds] = {};
+    let allOk = false;
+    try {
+      // One call for all venues (/api/all, throttled server-side)
+      const r = await fetch(`/api/all?date=${ds}`, {signal:AbortSignal.timeout(25000)});
+      if (r.ok) {
+        const j = await r.json();
+        if (Array.isArray(j.venues)) {
+          j.venues.forEach(v => {
+            const arr = Array.isArray(v.available) ? v.available : [];
+            out[ds][v.lid] = {
+              available: arr.map(a => a.time),
+              courts: Object.fromEntries(arr.map(a => [a.time, a.courts])),
+              error: !!v.error && v.error !== 'no_data',
+            };
+          });
+          allOk = true;
+        }
+      }
+    } catch(e) {}
+    // Fallback: per-venue /api/slots
+    if (!allOk) {
+      for (const v of LID_VENUES) {
+        try {
+          const r = await fetch(`/api/slots?lid=${v.lid}&date=${ds}`, {signal:AbortSignal.timeout(10000)});
+          if (r.ok) {
+            const j = await r.json();
+            out[ds][v.lid] = { available: j.available||[], error: false };
+          } else {
+            out[ds][v.lid] = { available:[], error:true };
+          }
+        } catch(e) {
+          out[ds][v.lid] = { available:[], error:true };
+        }
+      }
+    }
+  };
 
   const scan = async () => {
     setScanning(true);
     setResults({});
     setScanProgress("");
-    // out[dateStr][lid] = { available, error }
+    // out[dateStr][lid] = { available, courts, error }
     const out = {};
-    for (const d of weekendDates) {
-      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-      if (!out[ds]) out[ds] = {};
-      setScanProgress(`掃描中… ${d.getMonth()+1}/${d.getDate()} 全部場館`);
-      let allOk = false;
-      try {
-        // One call for all venues (/api/all, throttled server-side)
-        const r = await fetch(`/api/all?date=${ds}`, {signal:AbortSignal.timeout(25000)});
-        if (r.ok) {
-          const j = await r.json();
-          if (Array.isArray(j.venues)) {
-            j.venues.forEach(v => {
-              const arr = Array.isArray(v.available) ? v.available : [];
-              out[ds][v.lid] = {
-                available: arr.map(a => a.time),
-                courts: Object.fromEntries(arr.map(a => [a.time, a.courts])),
-                error: !!v.error && v.error !== 'no_data',
-              };
-            });
-            allOk = true;
-          }
-        }
-      } catch(e) {}
-      // Fallback: per-venue /api/slots
-      if (!allOk) {
-        for (const v of LID_VENUES) {
-          setScanProgress(`掃描中… ${v.name} ${d.getMonth()+1}/${d.getDate()}`);
-          try {
-            const r = await fetch(`/api/slots?lid=${v.lid}&date=${ds}`, {signal:AbortSignal.timeout(10000)});
-            if (r.ok) {
-              const j = await r.json();
-              out[ds][v.lid] = { available: j.available||[], error: false };
-            } else {
-              out[ds][v.lid] = { available:[], error:true };
-            }
-          } catch(e) {
-            out[ds][v.lid] = { available:[], error:true };
-          }
-          setResults({...out});
-        }
-      }
+    const dates = getScanDates();
+    // Chunks of 2 dates in parallel (each /api/all already throttles upstream)
+    for (let i = 0; i < dates.length; i += 2) {
+      const chunk = dates.slice(i, i+2);
+      setScanProgress(`掃描中… ${chunk.map(d=>`${d.getMonth()+1}/${d.getDate()}`).join("、")}（${Math.min(i+2,dates.length)}/${dates.length} 天）`);
+      await Promise.all(chunk.map(d => scanOneDate(d, out)));
       setResults({...out});
     }
     setScanning(false);
@@ -437,6 +342,18 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
 
   return (
     <div>
+      {/* Scan range selector */}
+      <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center"}}>
+        <span style={{fontSize:10,color:"#64748b"}}>範圍</span>
+        {[["weekend","本週末"],["7d","未來7天"],["14d","未來14天"]].map(([k,label])=>(
+          <button key={k} onClick={()=>setScanRange(k)} disabled={scanning} style={{
+            padding:"5px 11px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"pointer",
+            border:`1px solid ${scanRange===k?"rgba(96,165,250,0.5)":"#1e293b"}`,
+            background:scanRange===k?"rgba(59,130,246,0.12)":"transparent",
+            color:scanRange===k?"#60a5fa":"#64748b",
+          }}>{label}</button>
+        ))}
+      </div>
       {/* Top action buttons */}
       <div style={{display:"flex",gap:8,marginBottom:14}}>
         <button onClick={scan} disabled={scanning} style={{
@@ -448,7 +365,7 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
           <span style={{display:"inline-block",animation:scanning?"spin 1s linear infinite":"none"}}>
             {scanning?"⟳":"🔍"}
           </span>
-          {scanning?"掃描中…":"自動掃描空位"}
+          {scanning?(scanProgress||"掃描中…"):"自動掃描空位"}
         </button>
         <button onClick={()=>setMapMode(true)} style={{
           padding:"12px 14px",borderRadius:11,border:"1px solid #1e293b",
@@ -462,8 +379,9 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
       {Object.keys(results).length>0 && (
         <div style={{marginBottom:14}}>
           <div style={{fontSize:10,color:"#64748b",marginBottom:8}}>掃描結果</div>
-          {weekendDates.map(d=>{
-            const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+          {Object.keys(results).sort().map(ds=>{
+            const [yy,mm,dd]=ds.split("-").map(Number);
+            const d=new Date(yy,mm-1,dd);
             const dayRes=results[ds]; if(!dayRes) return null;
             const col=DAY_COLOR[d.getDay()];
             const hasAny=Object.values(dayRes).some(r=>r.available?.length>0);
@@ -494,7 +412,7 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
                             ? <span style={{fontSize:10,color:"#ef4444"}}>撈取失敗</span>
                             : res.available?.length>0
                             ? <span style={{fontSize:10,color:"#4ade80"}}>✅ {res.available.length}段有空</span>
-                            : <span style={{fontSize:10,color:"#64748b"}}>❌ 全滿</span>}
+                            : <span style={{fontSize:10,color:"#64748b"}}>{v.lid==="BTSC"?"❌ 已被訂（單場地整日制）":"❌ 全滿"}</span>}
                         </div>
                         {res.available?.length>0 && (
                           <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
@@ -1169,6 +1087,7 @@ function PlanTab({ now, favs, showToast }) {
 }
 
 const S={
+  // V2026.06.11
   root:{minHeight:"100vh",background:"#07090f",color:"#e2e8f0",fontFamily:"'Noto Sans TC','PingFang TC',sans-serif",maxWidth:480,margin:"0 auto"},
   hdr:{background:"#0d1521",borderBottom:"1px solid #1e293b",position:"sticky",top:0,zIndex:10},
   tabBar:{display:"flex",borderTop:"1px solid #1e293b"},
@@ -1183,13 +1102,4 @@ const S={
   cardBtns:{display:"flex",gap:6,padding:"6px 11px"},
   phoneBtn:{flex:1,padding:"9px 5px",borderRadius:9,textAlign:"center",background:"#111827",border:"1px solid #1e293b",color:"#94a3b8",fontSize:11,textDecoration:"none"},
   bookBtn:{flex:1.6,padding:"9px 5px",borderRadius:9,textAlign:"center",background:"rgba(74,222,128,0.1)",border:"1px solid rgba(74,222,128,0.25)",color:"#4ade80",fontSize:13,fontWeight:700,textDecoration:"none"},
-  expandBtn:{width:"100%",padding:"8px",background:"#0a1018",border:"none",borderTop:"1px solid #1e293b",color:"#64748b",fontSize:11,cursor:"pointer"},
-  planBox:{background:"#0f1923",border:"1px solid #1e293b",borderRadius:13,padding:"12px 12px 13px",marginBottom:10},
-  planTitle:{fontSize:13,fontWeight:700,marginBottom:8},
-  calNav:{padding:"2px 8px",borderRadius:6,border:"1px solid #1e293b",background:"transparent",color:"#94a3b8",cursor:"pointer",fontSize:14},
-  allBtn:{padding:"12px",borderRadius:10,border:"1px solid rgba(74,222,128,0.3)",background:"rgba(74,222,128,0.07)",color:"#4ade80",fontSize:13,fontWeight:700,cursor:"pointer"},
-  gCard:{background:"#0f1923",border:"1px solid #1e293b",borderRadius:12,padding:"11px",marginBottom:8},
-  gItem:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 8px",borderRadius:7,background:"#0a1018",marginBottom:3},
-  smBtn:{padding:"5px 8px",borderRadius:7,border:"1px solid #1e293b",background:"#111827",color:"#94a3b8",fontSize:13,cursor:"pointer"},
-  toast:{position:"fixed",bottom:26,left:"50%",transform:"translateX(-50%)",background:"#1e293b",color:"#e2e8f0",padding:"9px 20px",borderRadius:20,fontSize:13,fontWeight:600,zIndex:200,boxShadow:"0 4px 20px rgba(0,0,0,0.5)",whiteSpace:"nowrap"},
-};
+  expandBtn:{width:"100%",padding:"8px",background:
