@@ -120,7 +120,7 @@ export default function App() {
           <span style={{fontSize:22}}>🏸</span>
           <div>
             <div style={{fontSize:16,fontWeight:700,color:"#e2e8f0"}}>台北羽球助手</div>
-            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V26.5.6.2</div>
+            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V26.5.7</div>
             <div style={{fontSize:10,color:"#64748b",display:"flex",gap:6}}>
               {now.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"short"})} {now.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}
             </div>
@@ -144,7 +144,7 @@ export default function App() {
 
 
 // ── LuckyTab: non-LID venues grouped by until-date, collapsible ───────────────
-const NON_LID_IDS = ["daan","wanhua","beitou","shilin","xinyi","datong","zhongshan","nangang","tsc","cyc",
+const NON_LID_IDS = ["xinyi","datong","zhongshan","nangang","tsc","cyc",
   "yonghe","banqiao","zhonghe","xindian","xizhi","sanchong","xinzhuang"];
 
 function LuckyTab({ now, weekends, showToast, favs, togFav, todayClicked, markClicked }) {
@@ -240,6 +240,10 @@ const LID_VENUES = [
   { id:"wenshan",   name:"文山運動中心", lid:"WSSC", district:"文山區" },
   { id:"neihu",     name:"內湖運動中心", lid:"NHSC", district:"內湖區" },
   { id:"zhongzheng",name:"中正運動中心", lid:"JJSC", district:"中正區" },
+  { id:"daan",      name:"大安運動中心", lid:"DASC", district:"大安區" },
+  { id:"shilin",    name:"士林運動中心", lid:"SLSC", district:"士林區" },
+  { id:"wanhua",    name:"萬華運動中心", lid:"WHSC", district:"萬華區" },
+  { id:"beitou",    name:"北投運動中心", lid:"BTSC", district:"北投區" },
 ];
 
 const PROXIES = [
@@ -373,22 +377,45 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
     for (const d of weekendDates) {
       const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
       if (!out[ds]) out[ds] = {};
-      for (const v of LID_VENUES) {
-        setScanProgress(`掃描中… ${v.name} ${d.getMonth()+1}/${d.getDate()}`);
-        try {
-          // Use /api/slots (Vercel backend)
-          const r = await fetch(`/api/slots?lid=${v.lid}&date=${ds}`, {signal:AbortSignal.timeout(10000)});
-          if (r.ok) {
-            const j = await r.json();
-            out[ds][v.lid] = { available: j.available||[], error: false };
-          } else {
+      setScanProgress(`掃描中… ${d.getMonth()+1}/${d.getDate()} 全部場館`);
+      let allOk = false;
+      try {
+        // One call for all venues (/api/all, throttled server-side)
+        const r = await fetch(`/api/all?date=${ds}`, {signal:AbortSignal.timeout(25000)});
+        if (r.ok) {
+          const j = await r.json();
+          if (Array.isArray(j.venues)) {
+            j.venues.forEach(v => {
+              const arr = Array.isArray(v.available) ? v.available : [];
+              out[ds][v.lid] = {
+                available: arr.map(a => a.time),
+                courts: Object.fromEntries(arr.map(a => [a.time, a.courts])),
+                error: !!v.error && v.error !== 'no_data',
+              };
+            });
+            allOk = true;
+          }
+        }
+      } catch(e) {}
+      // Fallback: per-venue /api/slots
+      if (!allOk) {
+        for (const v of LID_VENUES) {
+          setScanProgress(`掃描中… ${v.name} ${d.getMonth()+1}/${d.getDate()}`);
+          try {
+            const r = await fetch(`/api/slots?lid=${v.lid}&date=${ds}`, {signal:AbortSignal.timeout(10000)});
+            if (r.ok) {
+              const j = await r.json();
+              out[ds][v.lid] = { available: j.available||[], error: false };
+            } else {
+              out[ds][v.lid] = { available:[], error:true };
+            }
+          } catch(e) {
             out[ds][v.lid] = { available:[], error:true };
           }
-        } catch(e) {
-          out[ds][v.lid] = { available:[], error:true };
+          setResults({...out});
         }
-        setResults({...out});
       }
+      setResults({...out});
     }
     setScanning(false);
     setScanProgress("");
@@ -476,7 +503,7 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
                                 style={{fontSize:11,fontWeight:600,padding:"3px 9px",borderRadius:6,
                                   background:"rgba(74,222,128,0.1)",color:"#4ade80",
                                   border:"1px solid rgba(74,222,128,0.3)",textDecoration:"none"}}>
-                                {t} ↗
+                                {t}{res.courts?.[t] ? ` ×${res.courts[t]}面` : ""} ↗
                               </a>
                             ))}
                           </div>
