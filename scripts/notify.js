@@ -48,6 +48,21 @@ async function sendTelegram(text) {
 }
 
 async function main() {
+  // 安靜時段：台灣時間 01:00–08:30 不掃描
+  const twNow = new Date(Date.now() + 8 * 3600 * 1000);
+  const hm = twNow.getUTCHours() * 60 + twNow.getUTCMinutes();
+  if (hm >= 60 && hm < 510) {
+    console.log(`台灣時間 ${String(twNow.getUTCHours()).padStart(2, '0')}:${String(twNow.getUTCMinutes()).padStart(2, '0')}，安靜時段（01:00–08:30），本輪跳過`);
+    return;
+  }
+
+  // 隨機抖動 0–5 分鐘，讓請求間隔不固定
+  if (!process.env.NO_JITTER) {
+    const jitter = Math.floor(Math.random() * 300000);
+    console.log(`隨機延遲 ${Math.round(jitter / 1000)} 秒`);
+    await new Promise(r => setTimeout(r, jitter));
+  }
+
   const watch = loadJson(WATCH_FILE, {});
   const venues = watch.venues || Object.keys(VENUE_NAMES);
   const rules = watch.rules || [];
@@ -63,7 +78,7 @@ async function main() {
   console.log(`監看日期：${dates.map(fmtDate).join(', ')}`);
 
   // 掃描
-  const matches = []; // {key, ds, day, lid, time, courts}
+  const matches = [];
   for (const d of dates) {
     const ds = fmtDate(d);
     const dow = d.getUTCDay();
@@ -85,7 +100,7 @@ async function main() {
     } catch (e) {
       console.error(`${ds} 掃描失敗：${e.message}`);
     }
-    await new Promise(res => setTimeout(res, 500));
+    await new Promise(res => setTimeout(res, 500 + Math.floor(Math.random() * 1000)));
   }
   console.log(`符合條件空位：${matches.length} 筆`);
 
@@ -114,7 +129,7 @@ async function main() {
     await sendTelegram(text);
   }
 
-  // 寫回狀態：保存目前所有符合條件的 key（含已通知過的），自動淘汰過期日期
+  // 寫回狀態：保存目前所有符合條件的 key，自動淘汰過期日期
   fs.writeFileSync(STATE_FILE, JSON.stringify(matches.map(m => m.key)));
   console.log('state.json 已更新');
 }
