@@ -1,0 +1,31 @@
+name: court-watch
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # 每 15 分鐘（GitHub 排程偶有延遲屬正常）
+  workflow_dispatch:          # 也可以在 Actions 頁面手動觸發
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 用 cache 保存上次的空位狀態，避免重複通知（不額外產生 commit）
+      - name: Restore watch state
+        uses: actions/cache@v4
+        with:
+          path: state.json
+          key: watch-state-${{ github.run_id }}
+          restore-keys: |
+            watch-state-
+
+      - name: Scan and notify
+        run: node scripts/notify.js
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
