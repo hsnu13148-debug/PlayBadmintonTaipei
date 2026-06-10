@@ -48,17 +48,30 @@ async function sendTelegram(text) {
 }
 
 async function main() {
+  const force = !!process.env.FORCE_RUN; // 手動觸發時無視安靜時段與間隔
+
   // 安靜時段：台灣時間 01:00–08:30 不掃描
   const twNow = new Date(Date.now() + 8 * 3600 * 1000);
   const hm = twNow.getUTCHours() * 60 + twNow.getUTCMinutes();
-  if (hm >= 60 && hm < 510) {
+  if (!force && hm >= 60 && hm < 510) {
     console.log(`台灣時間 ${String(twNow.getUTCHours()).padStart(2, '0')}:${String(twNow.getUTCMinutes()).padStart(2, '0')}，安靜時段（01:00–08:30），本輪跳過`);
     return;
   }
 
-  // 隨機抖動 0–5 分鐘，讓請求間隔不固定
+  // 隨機間隔 5–15 分鐘：cron 每 5 分鐘醒來，但只有距上次掃描超過抽到的間隔才真的跑
+  const rawState = loadJson(STATE_FILE, {});
+  const st = Array.isArray(rawState) ? { keys: rawState } : rawState; // 相容舊格式
+  if (!force && st.lastRun && st.nextGap) {
+    const elapsedMin = (Date.now() - st.lastRun) / 60000;
+    if (elapsedMin < st.nextGap) {
+      console.log(`距上次掃描 ${elapsedMin.toFixed(1)} 分，未達本輪間隔 ${st.nextGap.toFixed(1)} 分，跳過`);
+      return;
+    }
+  }
+
+  // 小抖動 0–60 秒
   if (!process.env.NO_JITTER) {
-    const jitter = Math.floor(Math.random() * 300000);
+    const jitter = Math.floor(Math.random() * 60000);
     console.log(`隨機延遲 ${Math.round(jitter / 1000)} 秒`);
     await new Promise(r => setTimeout(r, jitter));
   }
@@ -105,7 +118,7 @@ async function main() {
   console.log(`符合條件空位：${matches.length} 筆`);
 
   // 與上次狀態比對，只通知新出現的
-  const prev = new Set(loadJson(STATE_FILE, []));
+  const prev = new Set(st.keys || []);
   const fresh = matches.filter(m => !prev.has(m.key));
   console.log(`其中新出現：${fresh.length} 筆`);
 
@@ -130,8 +143,9 @@ async function main() {
   }
 
   // 寫回狀態：保存目前所有符合條件的 key，自動淘汰過期日期
-  fs.writeFileSync(STATE_FILE, JSON.stringify(matches.map(m => m.key)));
-  console.log('state.json 已更新');
+  const nextGap = 5 + Math.random() * 10; // 下次間隔 5–15 分鐘
+  fs.writeFileSync(STATE_FILE, JSON.stringify({ keys: matches.map(m => m.key), lastRun: Date.now(), nextGap }));
+  console.log(`state.json 已更新，下次間隔 ${nextGap.toFixed(1)} 分`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
