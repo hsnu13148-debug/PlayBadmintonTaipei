@@ -1,45 +1,32 @@
-// api/slots.js - V26.5.6.2 final
-// Correct parsing: StartTime.Hours, EndTime.Hours, allowBooking="Y"
+// api/slots.js - V26.5.7
+// Fix: findAllowBookingList requires POST (jqGrid form params), not GET.
+// No session cookie needed (verified with credentials:'omit' in browser).
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Cache-Control', 'no-store');
+  // CDN cache 60s to avoid hammering the booking server
+  res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { lid, date } = req.query;
   if (!lid || !date) return res.status(400).json({ error: 'Missing lid or date' });
 
-  // Use rows=100 to get all slots in one request (64 rows per venue per day)
-  const apiUrl = `https://booking-tpsc.sporetrofit.com/Location/findAllowBookingList?LID=${lid}&categoryId=Badminton&useDate=${date}&rows=100&page=1`;
+  const apiUrl = `https://booking-tpsc.sporetrofit.com/Location/findAllowBookingList?LID=${lid}&categoryId=Badminton&useDate=${date}`;
 
   try {
-    // Step 1: Get session from main page
-    const mainUrl = `https://booking-tpsc.sporetrofit.com/Location/BookingList?LID=${lid}&CategoryId=Badminton&UseDate=${date}`;
-    let cookies = '';
-    try {
-      const mainRes = await fetch(mainUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml',
-          'Accept-Language': 'zh-TW,zh;q=0.9',
-        },
-        redirect: 'follow',
-      });
-      cookies = mainRes.headers.get('set-cookie') || '';
-    } catch(_) {}
-
-    // Step 2: Call the real AJAX API
     const response = await fetch(apiUrl, {
+      method: 'POST',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'zh-TW,zh;q=0.9',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'X-Requested-With': 'XMLHttpRequest',
-        'Referer': mainUrl,
-        'Cookie': cookies,
+        'Referer': `https://booking-tpsc.sporetrofit.com/Location/BookingList?LID=${lid}&CategoryId=Badminton&UseDate=${date}`,
       },
+      body: '_search=false&rows=200&page=1&sidx=&sord=asc',
     });
 
     if (!response.ok) {
@@ -50,10 +37,18 @@ module.exports = async function handler(req, res) {
     let data;
     try {
       data = JSON.parse(text);
-    } catch(e) {
+    } catch (e) {
       return res.status(200).json({
         available: [], booked: [], total: 0,
         error: 'not_json', raw: text.slice(0, 100)
+      });
+    }
+
+    // Venue has no badminton data on this system (e.g. 大同/中山/南港/松山/信義)
+    if (data.errorMsg) {
+      return res.status(200).json({
+        available: [], booked: [], total: 0,
+        error: 'no_data', msg: data.errorMsg
       });
     }
 
