@@ -1,6 +1,6 @@
 # 🏸 台北羽球助手 | PlayBadmintonTaipei
 
-## V26.5.7
+## V2026.06.11
 
 台北、新北地區羽球場地搶場工具。
 
@@ -52,3 +52,30 @@
 - `WSSC` 文山運動中心
 - `NHSC` 內湖運動中心
 - `JJSC` 中正運動中心
+
+---
+
+## 空位通知（court-watch）
+
+GitHub Actions 每 15 分鐘自動掃描 `/api/all`，依 `watch.json` 條件
+（預設：週五 18:00–22:00、週六日全天、7 個場館）發現**新**空位時發 Telegram 通知。
+
+### 啟用步驟
+
+1. 在 Telegram 搜尋 **@BotFather** → `/newbot` → 取得 **BOT TOKEN**
+2. 跟自己的新 bot 說一句話，再開 `https://api.telegram.org/bot<TOKEN>/getUpdates` 找到 **chat.id**
+3. GitHub repo → Settings → Secrets and variables → Actions → 新增：
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_CHAT_ID`
+4. Actions 頁面手動跑一次 **court-watch** 驗證
+
+未設定 secrets 時 workflow 照常執行但只記 log（dry-run），不會失敗。
+
+### 調整監看條件
+
+改 `watch.json`：`venues`（LID 清單）、`rules`（days: 0=日…6=六 + 時段）、
+`daysAhead`（往後看幾天）、`minCourts`（最少面數）。
+
+### 版本規則
+
+版本號使用年月日格式：`V<年>.<月>.<日>`，例如 V2026.06.11。

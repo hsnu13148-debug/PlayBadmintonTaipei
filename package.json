@@ -1,6 +1,6 @@
 {
   "name": "play-badminton-taipei",
-  "version": "26.5.7",
+  "version": "2026.6.11",
   "private": true,
   "scripts": {
     "dev": "vite",

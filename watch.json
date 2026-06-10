@@ -1,0 +1,10 @@
+{
+  "comment": "空位監看條件：days 0=日 1=一 ... 6=六；時間為 24 小時制；venues 為要監看的 LID",
+  "venues": ["WSSC", "NHSC", "JJSC", "DASC", "SLSC", "WHSC", "BTSC"],
+  "rules": [
+    { "days": [5], "startHour": 18, "endHour": 22 },
+    { "days": [6, 0], "startHour": 6, "endHour": 22 }
+  ],
+  "daysAhead": 14,
+  "minCourts": 1
+}
