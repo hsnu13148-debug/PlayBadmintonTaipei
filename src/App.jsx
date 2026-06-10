@@ -1102,4 +1102,13 @@ const S={
   cardBtns:{display:"flex",gap:6,padding:"6px 11px"},
   phoneBtn:{flex:1,padding:"9px 5px",borderRadius:9,textAlign:"center",background:"#111827",border:"1px solid #1e293b",color:"#94a3b8",fontSize:11,textDecoration:"none"},
   bookBtn:{flex:1.6,padding:"9px 5px",borderRadius:9,textAlign:"center",background:"rgba(74,222,128,0.1)",border:"1px solid rgba(74,222,128,0.25)",color:"#4ade80",fontSize:13,fontWeight:700,textDecoration:"none"},
-  expandBtn:{width:"100%",padding:"8px",background:
+  expandBtn:{width:"100%",padding:"8px",background:"#0a1018",border:"none",borderTop:"1px solid #1e293b",color:"#64748b",fontSize:11,cursor:"pointer"},
+  planBox:{background:"#0f1923",border:"1px solid #1e293b",borderRadius:13,padding:"12px 12px 13px",marginBottom:10},
+  planTitle:{fontSize:13,fontWeight:700,marginBottom:8},
+  calNav:{padding:"2px 8px",borderRadius:6,border:"1px solid #1e293b",background:"transparent",color:"#94a3b8",cursor:"pointer",fontSize:14},
+  allBtn:{padding:"12px",borderRadius:10,border:"1px solid rgba(74,222,128,0.3)",background:"rgba(74,222,128,0.07)",color:"#4ade80",fontSize:13,fontWeight:700,cursor:"pointer"},
+  gCard:{background:"#0f1923",border:"1px solid #1e293b",borderRadius:12,padding:"11px",marginBottom:8},
+  gItem:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 8px",borderRadius:7,background:"#0a1018",marginBottom:3},
+  smBtn:{padding:"5px 8px",borderRadius:7,border:"1px solid #1e293b",background:"#111827",color:"#94a3b8",fontSize:13,cursor:"pointer"},
+  toast:{position:"fixed",bottom:26,left:"50%",transform:"translateX(-50%)",background:"#1e293b",color:"#e2e8f0",padding:"9px 20px",borderRadius:20,fontSize:13,fontWeight:600,zIndex:200,boxShadow:"0 4px 20px rgba(0,0,0,0.5)",whiteSpace:"nowrap"},
+};
