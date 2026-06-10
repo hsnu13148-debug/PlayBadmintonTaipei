@@ -2,8 +2,8 @@ name: court-watch
 
 on:
   schedule:
-    - cron: '*/15 * * * *'   # 每 15 分鐘（GitHub 排程偶有延遲屬正常）
-  workflow_dispatch:          # 也可以在 Actions 頁面手動觸發
+    - cron: '*/5 * * * *'    # 每 5 分鐘醒來；實際掃描間隔由 notify.js 隨機決定（5–15 分）
+  workflow_dispatch:          # 手動觸發（無視安靜時段與間隔限制）
 
 jobs:
   scan:
@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 20
 
-      # 用 cache 保存上次的空位狀態，避免重複通知（不額外產生 commit）
+      # 用 cache 保存上次的空位狀態與掃描時間，避免重複通知（不額外產生 commit）
       - name: Restore watch state
         uses: actions/cache@v4
         with:
@@ -29,3 +29,4 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
