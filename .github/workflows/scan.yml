@@ -2,8 +2,13 @@ name: court-watch
 
 on:
   schedule:
-    - cron: '*/5 * * * *'    # 每 5 分鐘醒來；實際掃描間隔由 notify.js 隨機決定（5–15 分）
-  workflow_dispatch:          # 手動觸發（無視安靜時段與間隔限制）
+    - cron: '*/15 * * * *'   # GitHub 內建排程（不準時，當備援）
+  workflow_dispatch:          # 由 cron-job.org 外部觸發（每 5 分鐘，準時）
+    inputs:
+      force:
+        description: '強制執行（無視安靜時段與隨機間隔）'
+        type: boolean
+        default: false
 
 jobs:
   scan:
@@ -29,4 +34,4 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
+          FORCE_RUN: ${{ inputs.force == true && '1' || '' }}
