@@ -1,12 +1,13 @@
-// scripts/notify.js - V2026.06.16b
-// 空位監看 + 事件記錄。依 watch.json 掃描 /api/all。
+// scripts/notify.js - V2026.06.16c
+// 空位監看 + 事件記錄 + 搶頭香標記。依 watch.json 掃描 /api/all。
 //  - mode="holiday"（預設）：放假日（含國定假日，依官方辦公日曆 isHoliday）全天通知；
 //    放假日的「前一天」（若本身非放假日，如連假前的上班日）通知 eveBeforeHours 時段。
 //    日曆抓不到時自動退回「週末全天 + 週六前一晚(週五)」。
 //  - mode="rules"：舊版 days/時段規則（向後相容）。
+//  搶頭香：state 記 scannedDates；某日期「第一次進入掃描窗」→ 其空位是「新日期釋出」(場最多)，
+//    通知標 🆕、優先掃、事件記 nr:1；已在窗內的日期冒空位＝退訂。冷啟動不標記。
 //  通知：發現「新出現且符合條件」的空位發 Telegram。
 //  事件：記錄監看場館全時段 appear/disappear → data/events-YYYY-MM.ndjson（推 data 分支）。
-// 狀態存 state.json（Actions cache）：每時段的 courts 與首次出現時間 since。
 // 環境變數：TELEGRAM_BOT_TOKEN、TELEGRAM_CHAT_ID（未設定時 dry-run）。
 
 const fs = require('fs');
@@ -106,6 +107,7 @@ async function main() {
   const prevSlots = st.slots
     ? st.slots
     : Object.fromEntries((st.keys || []).map(k => [k, { courts: 0, since: Date.now() }]));
+  const prevScanned = Array.isArray(st.scannedDates) ? st.scannedDates : null; // 上輪掃過的日期（搶頭香判斷）
 
   if (!force && st.lastRun && st.nextGap) {
     const elapsedMin = (Date.now() - st.lastRun) / 60000;
@@ -166,7 +168,12 @@ async function main() {
     }
     if (windows.length) activeDates.push({ d, ds: fmtDate(d), dow: d.getUTCDay(), windows, kind });
   }
-  console.log(`監看日期：${activeDates.map(a => `${a.ds}(${a.kind})`).join(', ') || '（無）'}`);
+
+  // 搶頭香：某日期上輪沒掃過（第一次進窗）→ 新釋出。冷啟動或無 prevScanned 時不標記。
+  const isNewDate = (ds) => !!prevScanned && !prevScanned.includes(ds);
+  // 優先掃新釋出的日期（剛進 14 天窗，場最多）
+  activeDates.sort((a, b) => (isNewDate(b.ds) ? 1 : 0) - (isNewDate(a.ds) ? 1 : 0));
+  console.log(`監看日期：${activeDates.map(a => `${a.ds}(${a.kind}${isNewDate(a.ds) ? '🆕' : ''})`).join(', ') || '（無）'}`);
 
   // 掃描：observed = 監看場館全時段空位；matches = 符合時段窗+面數的子集
   const observed = [];
@@ -207,7 +214,9 @@ async function main() {
   if (!coldStart) {
     for (const o of observed) {
       if (!prevSlots[o.key]) {
-        events.push({ t: nowIso, ev: 'appear', lid: o.lid, date: o.ds, dow: o.dow, slot: o.time, courts: o.courts, lead: o.lead });
+        const ev = { t: nowIso, ev: 'appear', lid: o.lid, date: o.ds, dow: o.dow, slot: o.time, courts: o.courts, lead: o.lead };
+        if (isNewDate(o.ds)) ev.nr = 1; // 搶頭香：新日期釋出
+        events.push(ev);
       }
     }
     for (const [key, prev] of Object.entries(prevSlots)) {
@@ -225,7 +234,7 @@ async function main() {
   console.log(`事件：appear ${events.filter(e => e.ev === 'appear').length}、disappear ${events.filter(e => e.ev === 'disappear').length}`);
   appendEvents(events);
 
-  // Telegram 通知
+  // Telegram 通知（新日期釋出的日期標 🆕）
   const fresh = coldStart ? [] : matches.filter(m => !prevSlots[m.key]);
   console.log(`其中新出現（通知）：${fresh.length} 筆`);
 
@@ -236,7 +245,8 @@ async function main() {
     for (const ds of Object.keys(byDate).sort()) {
       const [y, mo, dd] = ds.split('-').map(Number);
       const dow = new Date(Date.UTC(y, mo - 1, dd)).getUTCDay();
-      text += `\n${mo}/${dd}（${WD[dow]}）\n`;
+      const tag = isNewDate(ds) ? ' 🆕新日期釋出（場最多！）' : '';
+      text += `\n${mo}/${dd}（${WD[dow]}）${tag}\n`;
       for (const m of byDate[ds]) {
         text += `・${VENUE_NAMES[m.lid] || m.lid} ${m.time}（${m.courts}面）\n`;
       }
@@ -249,7 +259,7 @@ async function main() {
     await sendTelegram(text);
   }
 
-  // 寫回狀態
+  // 寫回狀態（含 scannedDates 供下輪判斷搶頭香）
   const nextGap = 5 + Math.random() * 10;
   const newSlots = {};
   for (const o of observed) {
@@ -258,8 +268,13 @@ async function main() {
       since: prevSlots[o.key]?.since || Date.now(),
     };
   }
-  fs.writeFileSync(STATE_FILE, JSON.stringify({ slots: newSlots, lastRun: Date.now(), nextGap }));
-  console.log(`state.json 已更新（${Object.keys(newSlots).length} 個時段），下次間隔 ${nextGap.toFixed(1)} 分`);
+  fs.writeFileSync(STATE_FILE, JSON.stringify({
+    slots: newSlots,
+    scannedDates: activeDates.map(a => a.ds),
+    lastRun: Date.now(),
+    nextGap,
+  }));
+  console.log(`state.json 已更新（${Object.keys(newSlots).length} 個時段、${activeDates.length} 個日期），下次間隔 ${nextGap.toFixed(1)} 分`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
