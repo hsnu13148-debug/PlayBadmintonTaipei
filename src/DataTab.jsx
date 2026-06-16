@@ -137,7 +137,8 @@ export default function DataTab() {
   appears.forEach(e => {
     const h = twHour(e.t);
     if (isNaN(h)) return;
-    if ((e.lead || 0) >= maxLead && maxLead > 0) relByHour[h].fresh++;
+    const isNew = e.nr ? true : ((e.lead || 0) >= maxLead && maxLead > 0);
+    if (isNew) relByHour[h].fresh++;
     else relByHour[h].retry++;
   });
   const activeHours = relByHour.map((v, h) => ({ h, ...v })).filter(v => v.retry + v.fresh > 0);
