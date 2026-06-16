@@ -1,14 +1,12 @@
-// scripts/notify.js - V2026.06.16c
-// 空位監看 + 事件記錄 + 搶頭香標記。依 watch.json 掃描 /api/all。
-//  - mode="holiday"（預設）：放假日（含國定假日，依官方辦公日曆 isHoliday）全天通知；
-//    放假日的「前一天」（若本身非放假日，如連假前的上班日）通知 eveBeforeHours 時段。
-//    日曆抓不到時自動退回「週末全天 + 週六前一晚(週五)」。
-//  - mode="rules"：舊版 days/時段規則（向後相容）。
-//  搶頭香：state 記 scannedDates；某日期「第一次進入掃描窗」→ 其空位是「新日期釋出」(場最多)，
-//    通知標 🆕、優先掃、事件記 nr:1；已在窗內的日期冒空位＝退訂。冷啟動不標記。
-//  通知：發現「新出現且符合條件」的空位發 Telegram。
-//  事件：記錄監看場館全時段 appear/disappear → data/events-YYYY-MM.ndjson（推 data 分支）。
-// 環境變數：TELEGRAM_BOT_TOKEN、TELEGRAM_CHAT_ID（未設定時 dry-run）。
+// scripts/notify.js - V2026.06.16d
+// 空位監看 + 事件記錄 + 搶頭香標記 + 健康監測。依 watch.json 掃描 /api/all。
+//  - mode="holiday"（預設）：放假日(含國定假日，依官方辦公日曆 isHoliday)全天通知；放假日前一天通知 eveBeforeHours。
+//    日曆抓不到時自動退回「週末全天 + 週六前一晚(週五)」。mode="rules"：舊版規則（相容）。
+//  搶頭香：state 記 scannedDates；某日期第一次進掃描窗→新釋出(場最多)，通知標🆕、優先掃、事件記 nr:1。
+//  健康監測：(B)連續3輪 API 全撈不到→發⚠️警報、恢復發✅；(A)每日台灣09:00後發一則心跳(沒收到=系統死)。
+//    可選：設 HEALTHCHECK_URL（GitHub secret）→ 成功掃描後 ping（接 healthchecks.io 等做真 dead-man's-switch）。
+//  事件：監看場館全時段 appear/disappear → data/events-YYYY-MM.ndjson（推 data 分支）。
+// 環境變數：TELEGRAM_BOT_TOKEN、TELEGRAM_CHAT_ID（未設定 dry-run）、HEALTHCHECK_URL（可選）。
 
 const fs = require('fs');
 const path = require('path');
@@ -29,16 +27,17 @@ function twToday() {
   const tw = new Date(Date.now() + 8 * 3600 * 1000);
   return new Date(Date.UTC(tw.getUTCFullYear(), tw.getUTCMonth(), tw.getUTCDate()));
 }
-
+function twHourMin() {
+  const t = new Date(Date.now() + 8 * 3600 * 1000);
+  return t.getUTCHours() * 60 + t.getUTCMinutes();
+}
 function fmtDate(d) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 }
-
 function loadJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return fallback; }
 }
 
-// 抓官方辦公日曆，回傳「放假日」字串 Set（YYYY-MM-DD）。全抓失敗回 null（呼叫端退回週末）。
 async function loadHolidaySet(years, tmpl) {
   const set = new Set();
   let ok = false;
@@ -93,10 +92,9 @@ async function main() {
   const force = !!process.env.FORCE_RUN;
 
   // 安靜時段：台灣時間 01:00–08:30 不掃描
-  const twNow = new Date(Date.now() + 8 * 3600 * 1000);
-  const hm = twNow.getUTCHours() * 60 + twNow.getUTCMinutes();
-  if (!force && hm >= 60 && hm < 510) {
-    console.log(`台灣時間 ${String(twNow.getUTCHours()).padStart(2, '0')}:${String(twNow.getUTCMinutes()).padStart(2, '0')}，安靜時段（01:00–08:30），本輪跳過`);
+  const hm0 = twHourMin();
+  if (!force && hm0 >= 60 && hm0 < 510) {
+    console.log(`台灣時間 ${String(Math.floor(hm0 / 60)).padStart(2, '0')}:${String(hm0 % 60).padStart(2, '0')}，安靜時段（01:00–08:30），本輪跳過`);
     return;
   }
 
@@ -107,7 +105,7 @@ async function main() {
   const prevSlots = st.slots
     ? st.slots
     : Object.fromEntries((st.keys || []).map(k => [k, { courts: 0, since: Date.now() }]));
-  const prevScanned = Array.isArray(st.scannedDates) ? st.scannedDates : null; // 上輪掃過的日期（搶頭香判斷）
+  const prevScanned = Array.isArray(st.scannedDates) ? st.scannedDates : null;
 
   if (!force && st.lastRun && st.nextGap) {
     const elapsedMin = (Date.now() - st.lastRun) / 60000;
@@ -136,7 +134,7 @@ async function main() {
   const today = twToday();
   const todayStr = fmtDate(today);
 
-  // 假日模式：載入官方日曆（涵蓋 window + 隔天）
+  // 假日模式：載入官方日曆
   let holidaySet = null;
   if (mode === 'holiday') {
     const yrs = new Set();
@@ -147,10 +145,10 @@ async function main() {
   const isHol = (d) => {
     if (mode === 'holiday' && holidaySet) return holidaySet.has(fmtDate(d));
     const dow = d.getUTCDay();
-    return dow === 0 || dow === 6; // 退回：週末
+    return dow === 0 || dow === 6;
   };
 
-  // 決定要掃的日期與各自的時段窗
+  // 要掃的日期與時段窗
   const activeDates = [];
   for (let i = 0; i < daysAhead; i++) {
     const d = new Date(today.getTime() + i * 86400e3);
@@ -169,24 +167,25 @@ async function main() {
     if (windows.length) activeDates.push({ d, ds: fmtDate(d), dow: d.getUTCDay(), windows, kind });
   }
 
-  // 搶頭香：某日期上輪沒掃過（第一次進窗）→ 新釋出。冷啟動或無 prevScanned 時不標記。
+  // 搶頭香判定
   const isNewDate = (ds) => !!prevScanned && !prevScanned.includes(ds);
-  // 優先掃新釋出的日期（剛進 14 天窗，場最多）
   activeDates.sort((a, b) => (isNewDate(b.ds) ? 1 : 0) - (isNewDate(a.ds) ? 1 : 0));
   console.log(`監看日期：${activeDates.map(a => `${a.ds}(${a.kind}${isNewDate(a.ds) ? '🆕' : ''})`).join(', ') || '（無）'}`);
 
-  // 掃描：observed = 監看場館全時段空位；matches = 符合時段窗+面數的子集
+  // 掃描（同時統計健康：okResp/errResp）
   const observed = [];
   const matches = [];
+  let okResp = 0, errResp = 0;
   for (const ad of activeDates) {
     const { d, ds, dow, windows } = ad;
     const lead = Math.round((d.getTime() - today.getTime()) / 86400e3);
     try {
       const r = await fetch(`${API_BASE}/api/all?date=${ds}`, { signal: AbortSignal.timeout(30000) });
-      if (!r.ok) { console.error(`${ds} HTTP ${r.status}`); continue; }
+      if (!r.ok) { console.error(`${ds} HTTP ${r.status}`); errResp += venues.length; continue; }
       const j = await r.json();
       for (const v of j.venues || []) {
         if (!venues.includes(v.lid)) continue;
+        if (Array.isArray(v.available)) okResp++; else errResp++;
         for (const slot of v.available || []) {
           const courts = slot.courts || 0;
           const key = `${ds}|${v.lid}|${slot.time}`;
@@ -200,22 +199,22 @@ async function main() {
       }
     } catch (e) {
       console.error(`${ds} 掃描失敗：${e.message}`);
+      errResp += venues.length;
     }
     await new Promise(res => setTimeout(res, 500 + Math.floor(Math.random() * 1000)));
   }
-  console.log(`觀測空位：${observed.length} 筆，其中符合通知條件：${matches.length} 筆`);
+  console.log(`觀測空位：${observed.length} 筆，符合通知：${matches.length} 筆；回應 ok ${okResp}/err ${errResp}`);
 
   // 事件偵測
   const nowIso = new Date().toISOString();
   const observedMap = {};
   observed.forEach(o => { observedMap[o.key] = o; });
   const events = [];
-
   if (!coldStart) {
     for (const o of observed) {
       if (!prevSlots[o.key]) {
         const ev = { t: nowIso, ev: 'appear', lid: o.lid, date: o.ds, dow: o.dow, slot: o.time, courts: o.courts, lead: o.lead };
-        if (isNewDate(o.ds)) ev.nr = 1; // 搶頭香：新日期釋出
+        if (isNewDate(o.ds)) ev.nr = 1;
         events.push(ev);
       }
     }
@@ -234,10 +233,9 @@ async function main() {
   console.log(`事件：appear ${events.filter(e => e.ev === 'appear').length}、disappear ${events.filter(e => e.ev === 'disappear').length}`);
   appendEvents(events);
 
-  // Telegram 通知（新日期釋出的日期標 🆕）
+  // Telegram 通知（新日期釋出標 🆕）
   const fresh = coldStart ? [] : matches.filter(m => !prevSlots[m.key]);
   console.log(`其中新出現（通知）：${fresh.length} 筆`);
-
   if (fresh.length > 0) {
     const byDate = {};
     fresh.forEach(m => { (byDate[m.ds] = byDate[m.ds] || []).push(m); });
@@ -259,22 +257,63 @@ async function main() {
     await sendTelegram(text);
   }
 
-  // 寫回狀態（含 scannedDates 供下輪判斷搶頭香）
+  // ── 健康監測 ──
+  const health = (st.health && typeof st.health === 'object')
+    ? st.health
+    : { lastHbDay: null, notifsSinceHb: 0, apiFailStreak: 0, apiAlerted: false };
+  if (fresh.length > 0) health.notifsSinceHb = (health.notifsSinceHb || 0) + 1;
+
+  const apiEvaluable = activeDates.length > 0; // 沒有可掃日期時不評估 API 健康
+  const apiOk = okResp > 0;
+  if (apiEvaluable) {
+    if (!apiOk) {
+      health.apiFailStreak = (health.apiFailStreak || 0) + 1;
+      console.warn(`API 異常：ok ${okResp}/err ${errResp}，連續 ${health.apiFailStreak} 輪`);
+      if (health.apiFailStreak >= 3 && !health.apiAlerted) {
+        await sendTelegram(`⚠️ 羽球雷達警告\n官方訂場 API 連續 ${health.apiFailStreak} 輪撈不到任何資料，雷達可能已失效。\n請檢查 booking-tpsc.sporetrofit.com 是否改版，或看 GitHub Actions log。`);
+        health.apiAlerted = true;
+      }
+    } else {
+      if (health.apiAlerted) {
+        await sendTelegram(`✅ 羽球雷達恢復\n官方 API 已恢復正常（本輪 ${okResp} 個場館回應）。`);
+      }
+      health.apiFailStreak = 0;
+      health.apiAlerted = false;
+    }
+  }
+
+  // 每日心跳（台灣 09:00 後第一輪）：沒收到＝系統死了
+  if (twHourMin() >= 540 && health.lastHbDay !== todayStr) {
+    const kinds = activeDates.map(a => a.kind);
+    const nNew = activeDates.filter(a => isNewDate(a.ds)).length;
+    const scope = activeDates.length
+      ? `目前監看 ${activeDates.length} 天（假日 ${kinds.filter(k => k === '假日').length}、前一晚 ${kinds.filter(k => k === '前一晚').length}${nNew ? `、🆕新釋出 ${nNew}` : ''}）`
+      : '近 14 天無假日可監看';
+    await sendTelegram(`✅ 羽球雷達運作中\n${scope}\nAPI ${apiOk ? '正常' : '⚠️異常'}${holidaySet ? '' : '｜日曆退回週末模式'}\n過去一天發出 ${health.notifsSinceHb || 0} 則空位通知`);
+    health.lastHbDay = todayStr;
+    health.notifsSinceHb = 0;
+  }
+
+  // 可選 dead-man's-switch：成功掃描後 ping HEALTHCHECK_URL（healthchecks.io 等）
+  if (apiOk && process.env.HEALTHCHECK_URL) {
+    try { await fetch(process.env.HEALTHCHECK_URL, { signal: AbortSignal.timeout(8000) }); console.log('healthcheck 已 ping'); }
+    catch (e) { console.error('healthcheck ping 失敗：', e.message); }
+  }
+
+  // 寫回狀態
   const nextGap = 5 + Math.random() * 10;
   const newSlots = {};
   for (const o of observed) {
-    newSlots[o.key] = {
-      courts: o.courts,
-      since: prevSlots[o.key]?.since || Date.now(),
-    };
+    newSlots[o.key] = { courts: o.courts, since: prevSlots[o.key]?.since || Date.now() };
   }
   fs.writeFileSync(STATE_FILE, JSON.stringify({
     slots: newSlots,
     scannedDates: activeDates.map(a => a.ds),
+    health,
     lastRun: Date.now(),
     nextGap,
   }));
-  console.log(`state.json 已更新（${Object.keys(newSlots).length} 個時段、${activeDates.length} 個日期），下次間隔 ${nextGap.toFixed(1)} 分`);
+  console.log(`state.json 已更新（${Object.keys(newSlots).length} 時段、${activeDates.length} 日期、apiFailStreak ${health.apiFailStreak}），下次間隔 ${nextGap.toFixed(1)} 分`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
