@@ -175,7 +175,7 @@ export default function DataTab() {
       {/* 熱力圖 */}
       <div style={card}>
         <div style={title}>🔥 退訂熱力圖</div>
-        <div style={sub}>星期 × 時段，顏色越亮＝越常冒出空位＝越值得守。（依目前監看：週五晚＋週末全天）</div>
+        <div style={sub}>星期 × 時段，顏色越亮＝越常冒出空位＝越值得守。（依目前監看：放假日全天＋前一晚）</div>
         <div style={{overflowX:"auto"}}>
           <div style={{display:"inline-block", minWidth:"100%"}}>
             <div style={{display:"flex", gap:2, marginBottom:2, paddingLeft:30}}>
