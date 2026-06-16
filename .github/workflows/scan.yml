@@ -10,6 +10,14 @@ on:
         type: boolean
         default: false
 
+# 避免兩輪同時跑時 push data 分支撞在一起
+concurrency:
+  group: court-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write            # 讓 GITHUB_TOKEN 能 push data 分支
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -35,3 +43,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           FORCE_RUN: ${{ inputs.force == true && '1' || '' }}
+
+      # 把本輪事件累積推到 data 分支（main 保持乾淨、不觸發 Vercel 重建）
+      - name: Push events to data branch
+        if: always()
+        run: bash scripts/push-data.sh
