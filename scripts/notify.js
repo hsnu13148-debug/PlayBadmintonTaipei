@@ -1,6 +1,11 @@
-// scripts/notify.js - V2026.06.11
-// 空位監看：依 watch.json 條件掃描 /api/all，發現「新」空位時發 Telegram 通知。
-// 狀態存在 state.json（由 GitHub Actions cache 保存），只通知上次沒看過的空位。
+// scripts/notify.js - V2026.06.16
+// 空位監看 + 事件記錄：依 watch.json 條件掃描 /api/all。
+//  1) 發現「新」空位（符合通知規則）時發 Telegram 通知。
+//  2) 記錄所有監看場館「全時段」的 appear / disappear 事件到 data/events-YYYY-MM.ndjson，
+//     供 App 的「數據」分頁分析（退訂釋出時刻、撿場速度、熱力圖、搶頭香規律）。
+//
+// 狀態存在 state.json（由 GitHub Actions cache 保存）：記住每個時段上次的 courts 與首次出現時間。
+// 事件檔 commit 進 repo，長期累積。
 // 環境變數：TELEGRAM_BOT_TOKEN、TELEGRAM_CHAT_ID（未設定時只印出結果，不發通知）
 
 const fs = require('fs');
@@ -9,6 +14,7 @@ const path = require('path');
 const API_BASE = process.env.API_BASE || 'https://play-badminton-taipei.vercel.app';
 const STATE_FILE = path.join(process.cwd(), 'state.json');
 const WATCH_FILE = path.join(__dirname, '..', 'watch.json');
+const DATA_DIR = path.join(process.cwd(), 'data');
 
 const VENUE_NAMES = {
   JJSC: '中正', NHSC: '內湖', WSSC: '文山', DASC: '大安',
@@ -28,6 +34,21 @@ function fmtDate(d) {
 
 function loadJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return fallback; }
+}
+
+// 事件以 NDJSON 逐行 append，依「偵測月份」分檔（台灣時間），檔案累積在 repo。
+function appendEvents(events) {
+  if (!events.length) return;
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    const tw = new Date(Date.now() + 8 * 3600 * 1000);
+    const ym = `${tw.getUTCFullYear()}-${String(tw.getUTCMonth() + 1).padStart(2, '0')}`;
+    const file = path.join(DATA_DIR, `events-${ym}.ndjson`);
+    fs.appendFileSync(file, events.map(e => JSON.stringify(e)).join('\n') + '\n');
+    console.log(`已寫入 ${events.length} 筆事件 → data/events-${ym}.ndjson`);
+  } catch (e) {
+    console.error('寫入事件檔失敗：', e.message);
+  }
 }
 
 async function sendTelegram(text) {
@@ -60,7 +81,13 @@ async function main() {
 
   // 隨機間隔 5–15 分鐘：cron 每 5 分鐘醒來，但只有距上次掃描超過抽到的間隔才真的跑
   const rawState = loadJson(STATE_FILE, {});
-  const st = Array.isArray(rawState) ? { keys: rawState } : rawState; // 相容舊格式
+  // 相容舊格式：陣列 → {keys}; {keys:[...]} → 轉成 slots map
+  const st = Array.isArray(rawState) ? { keys: rawState } : rawState;
+  const coldStart = !st.slots && !st.keys; // 全新狀態：本輪只建檔，不發 appear 事件（避免冷啟動爆量假釋出）
+  const prevSlots = st.slots
+    ? st.slots
+    : Object.fromEntries((st.keys || []).map(k => [k, { courts: 0, since: Date.now() }]));
+
   if (!force && st.lastRun && st.nextGap) {
     const elapsedMin = (Date.now() - st.lastRun) / 60000;
     if (elapsedMin < st.nextGap) {
@@ -83,6 +110,7 @@ async function main() {
   const minCourts = watch.minCourts || 1;
 
   const today = twToday();
+  const todayStr = fmtDate(today);
   const dates = [];
   for (let i = 0; i < daysAhead; i++) {
     const d = new Date(today.getTime() + i * 86400e3);
@@ -90,11 +118,14 @@ async function main() {
   }
   console.log(`監看日期：${dates.map(fmtDate).join(', ')}`);
 
-  // 掃描
+  // 掃描：observed = 監看場館的「全時段」可預約空位（事件記錄用）
+  //       matches  = 其中符合通知規則（時段+面數）的子集（Telegram 通知用）
+  const observed = [];   // { key, ds, dow, lid, time, courts, lead }
   const matches = [];
   for (const d of dates) {
     const ds = fmtDate(d);
     const dow = d.getUTCDay();
+    const lead = Math.round((d.getTime() - today.getTime()) / 86400e3); // 距今幾天（搶頭香判斷）
     const dayRules = rules.filter(r => (r.days || []).includes(dow));
     try {
       const r = await fetch(`${API_BASE}/api/all?date=${ds}`, { signal: AbortSignal.timeout(30000) });
@@ -103,10 +134,13 @@ async function main() {
       for (const v of j.venues || []) {
         if (!venues.includes(v.lid)) continue;
         for (const slot of v.available || []) {
+          const courts = slot.courts || 0;
+          const key = `${ds}|${v.lid}|${slot.time}`;
+          observed.push({ key, ds, dow, lid: v.lid, time: slot.time, courts, lead });
           const startH = parseInt(slot.time.slice(0, 2), 10);
           const hit = dayRules.some(rl => startH >= (rl.startHour ?? 0) && startH < (rl.endHour ?? 24));
-          if (hit && (slot.courts || 0) >= minCourts) {
-            matches.push({ key: `${ds}|${v.lid}|${slot.time}`, ds, dow, lid: v.lid, time: slot.time, courts: slot.courts });
+          if (hit && courts >= minCourts) {
+            matches.push({ key, ds, dow, lid: v.lid, time: slot.time, courts });
           }
         }
       }
@@ -115,12 +149,40 @@ async function main() {
     }
     await new Promise(res => setTimeout(res, 500 + Math.floor(Math.random() * 1000)));
   }
-  console.log(`符合條件空位：${matches.length} 筆`);
+  console.log(`觀測空位：${observed.length} 筆，其中符合通知條件：${matches.length} 筆`);
 
-  // 與上次狀態比對，只通知新出現的
-  const prev = new Set(st.keys || []);
-  const fresh = matches.filter(m => !prev.has(m.key));
-  console.log(`其中新出現：${fresh.length} 筆`);
+  // ── 事件偵測：與上一輪的 prevSlots 比對 ──────────────────────────────
+  const nowIso = new Date().toISOString();
+  const observedMap = {};
+  observed.forEach(o => { observedMap[o.key] = o; });
+  const events = [];
+
+  if (!coldStart) {
+    // appear：本輪有、上輪沒有
+    for (const o of observed) {
+      if (!prevSlots[o.key]) {
+        events.push({ t: nowIso, ev: 'appear', lid: o.lid, date: o.ds, dow: o.dow, slot: o.time, courts: o.courts, lead: o.lead });
+      }
+    }
+    // disappear：上輪有、本輪沒有，且該日期仍在可掃描範圍內（排除「過期下架」的假消失）
+    for (const [key, prev] of Object.entries(prevSlots)) {
+      if (observedMap[key]) continue;
+      const dateStr = key.split('|')[0];
+      if (dateStr < todayStr) continue; // 日期已過 → 自然下架，非被搶
+      const dur = prev.since ? +(((Date.now() - prev.since) / 60000).toFixed(1)) : null;
+      const [, lid, slot] = key.split('|');
+      const lead = Math.round((Date.parse(dateStr + 'T00:00:00Z') - today.getTime()) / 86400e3);
+      events.push({ t: nowIso, ev: 'disappear', lid, date: dateStr, slot, dur, lead });
+    }
+  } else {
+    console.log('冷啟動：本輪僅建立狀態，不記錄 appear 事件');
+  }
+  console.log(`事件：appear ${events.filter(e => e.ev === 'appear').length}、disappear ${events.filter(e => e.ev === 'disappear').length}`);
+  appendEvents(events);
+
+  // ── Telegram 通知：只通知「新出現且符合規則」的空位 ──────────────────
+  const fresh = coldStart ? [] : matches.filter(m => !prevSlots[m.key]);
+  console.log(`其中新出現（通知）：${fresh.length} 筆`);
 
   if (fresh.length > 0) {
     const byDate = {};
@@ -142,10 +204,17 @@ async function main() {
     await sendTelegram(text);
   }
 
-  // 寫回狀態：保存目前所有符合條件的 key，自動淘汰過期日期
+  // ── 寫回狀態：保存目前所有 observed 的 courts 與首次出現時間（since） ──
   const nextGap = 5 + Math.random() * 10; // 下次間隔 5–15 分鐘
-  fs.writeFileSync(STATE_FILE, JSON.stringify({ keys: matches.map(m => m.key), lastRun: Date.now(), nextGap }));
-  console.log(`state.json 已更新，下次間隔 ${nextGap.toFixed(1)} 分`);
+  const newSlots = {};
+  for (const o of observed) {
+    newSlots[o.key] = {
+      courts: o.courts,
+      since: prevSlots[o.key]?.since || Date.now(), // 沿用首次出現時間，供 disappear 計算 dur
+    };
+  }
+  fs.writeFileSync(STATE_FILE, JSON.stringify({ slots: newSlots, lastRun: Date.now(), nextGap }));
+  console.log(`state.json 已更新（${Object.keys(newSlots).length} 個時段），下次間隔 ${nextGap.toFixed(1)} 分`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
