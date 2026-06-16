@@ -1,10 +1,10 @@
 {
-  "comment": "空位監看條件：days 0=日 1=一 ... 6=六；時間為 24 小時制；venues 為要監看的 LID",
+  "comment": "假日模式：放假日(含國定假日，依官方辦公日曆 isHoliday)全天通知 + 放假日前一晚通知。venues 為要監看的 LID。",
   "venues": ["WSSC", "NHSC", "JJSC", "DASC", "SLSC", "WHSC", "BTSC"],
-  "rules": [
-    { "days": [5], "startHour": 18, "endHour": 22 },
-    { "days": [6, 0], "startHour": 6, "endHour": 22 }
-  ],
+  "mode": "holiday",
+  "holidayHours": { "startHour": 6, "endHour": 22 },
+  "eveBeforeHours": { "startHour": 18, "endHour": 22 },
+  "calendarUrlTemplate": "https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar@master/data/{year}.json",
   "daysAhead": 14,
   "minCourts": 1
 }
