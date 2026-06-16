@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import DataTab from "./DataTab";
 
 const DAY_COLOR = ["#a855f7","#ef4444","#f97316","#eab308","#22c55e","#3b82f6","#6366f1"];
 const DAY_BG    = ["rgba(168,85,247,0.13)","rgba(239,68,68,0.13)","rgba(249,115,22,0.13)","rgba(234,179,8,0.13)","rgba(34,197,94,0.13)","rgba(59,130,246,0.13)","rgba(99,102,241,0.13)"];
@@ -120,14 +121,14 @@ export default function App() {
           <span style={{fontSize:22}}>🏸</span>
           <div>
             <div style={{fontSize:16,fontWeight:700,color:"#e2e8f0"}}>台北羽球助手</div>
-            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V2026.06.11</div>
+            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V2026.06.16</div>
             <div style={{fontSize:10,color:"#64748b",display:"flex",gap:6}}>
               {now.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"short"})} {now.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}
             </div>
           </div>
         </div>
         <div style={S.tabBar}>
-          {[["realtime","⚡ 即時空位"],["lucky","📋 已開放預約"],["plan","📅 搶場計畫"]].map(([v,l]) => (
+          {[["realtime","⚡ 即時空位"],["lucky","📋 已開放預約"],["plan","📅 搶場計畫"],["data","📊 數據"]].map(([v,l]) => (
             <button key={v} onClick={()=>setTab(v)} style={{...S.tab,...(tab===v?S.tabOn:{})}}>{l}</button>
           ))}
         </div>
@@ -136,6 +137,7 @@ export default function App() {
         {tab==="realtime" && <RealtimeTab now={now} showToast={showToast} favs={favs} togFav={togFav} todayClicked={todayClicked} markClicked={markClicked}/>}
         {tab==="lucky"    && <LuckyTab    now={now} weekends={weekends} showToast={showToast} favs={favs} togFav={togFav} todayClicked={todayClicked} markClicked={markClicked}/>}
         {tab==="plan"     && <PlanTab     now={now} favs={favs} showToast={showToast}/>}
+        {tab==="data"     && <DataTab/>}
       </div>
       {toast && <div style={S.toast}>{toast}</div>}
     </div>
