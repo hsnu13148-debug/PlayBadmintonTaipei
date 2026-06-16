@@ -10,55 +10,49 @@
 
 ```
 /
-├── index.html          ← 入口頁面
-├── package.json        ← 套件設定
-├── vite.config.js      ← 打包設定
-├── vercel.json         ← Vercel 設定
+├── index.html                  ← 入口頁面
+├── package.json                ← 套件設定
+├── vite.config.js              ← 打包設定
+├── vercel.json                 ← Vercel 設定
+├── watch.json                  ← 監看條件（假日模式）
 ├── src/
-│   ├── main.jsx        ← React 入口
-│   └── App.jsx         ← 主程式（PlayBadmintonTaipei）
+│   ├── main.jsx                ← React 入口
+│   ├── App.jsx                 ← 主程式（4 分頁）
+│   └── DataTab.jsx             ← 📊 數據分頁
 ├── api/
-│   └── slots.js        ← 後端 API：抓即時空位資料
-└── public/
-    └── manifest.json   ← PWA 設定（加入主畫面）
+│   ├── slots.js                ← 單一場館即時空位
+│   └── all.js                  ← 7 場館一次查（節流）
+├── scripts/
+│   ├── notify.js               ← court-watch 掃描/通知/事件/健康監測
+│   └── push-data.sh            ← 把事件推到 data 分支
+└── .github/workflows/scan.yml  ← 排程觸發
+
+分支：main（程式）、data（累積的事件 NDJSON，不觸發 Vercel 重建）
 ```
 
 ---
 
 ## 更新步驟
 
-1. 把新版 App.jsx 放進 `src/` 資料夾，覆蓋舊檔案
-2. 上傳到 GitHub（commit + push）
-3. Vercel 自動重新部署（約 1-2 分鐘）
+1. 把改好的檔案放進對應資料夾，上傳到 GitHub（commit + push）
+2. Vercel 自動重新部署（約 1–2 分鐘）
 
 ---
 
 ## 後端 API
 
-`/api/slots?lid=WSSC&date=2026-05-10`
+`/api/all?date=2026-06-20` → 一次回 7 個運動中心的即時空位（並發 2、s-maxage=60 快取）。
+`/api/slots?lid=WSSC&date=2026-06-20` → 單一場館。
 
-回傳：
-```json
-{
-  "lid": "WSSC",
-  "date": "2026-05-10",
-  "available": ["06:00–07:00", "14:00–15:00"],
-  "booked": ["07:00–08:00"],
-  "total": 16
-}
-```
-
-支援的 LID：
-- `WSSC` 文山運動中心
-- `NHSC` 內湖運動中心
-- `JJSC` 中正運動中心
+支援 LID：`WSSC` 文山、`NHSC` 內湖、`JJSC` 中正、`DASC` 大安、`SLSC` 士林、`WHSC` 萬華、`BTSC` 北投。
 
 ---
 
 ## 空位通知（court-watch）
 
-GitHub Actions 每 15 分鐘自動掃描 `/api/all`，依 `watch.json` 條件
+GitHub Actions（+ cron-job.org 每 5 分外部觸發）自動掃描 `/api/all`，依 `watch.json` 條件
 （預設：放假日含國定假日全天、放假日前一晚 18:00–22:00、7 個場館）發現**新**空位時發 Telegram 通知。
+新日期剛釋出（第一次進 14 天窗、場最多）的會標 **🆕新日期釋出**。
 
 ### 啟用步驟
 
@@ -85,4 +79,58 @@ GitHub Actions 每 15 分鐘自動掃描 `/api/all`，依 `watch.json` 條件
 
 ## 數據分析（data 分支 + 📊 數據分頁）
 
-官方系統沒有歷史 API，所以
+官方系統沒有歷史 API，所以價值在記錄「狀態轉變」。`notify.js` 每輪掃描比對上輪狀態，記錄兩種事件：
+
+- **appear**：某時段冒出空位（退訂；新日期釋出的標 `nr:1`）
+- **disappear**：某時段被搶走（含停留時長 `dur`）
+
+事件以 NDJSON 寫進 `data/events-YYYY-MM.ndjson`，由 `push-data.sh` 累積推到 repo 的 **data 分支**
+（不是 main，避免洗版且 **不觸發 Vercel 重建**）。App 的「📊 數據」分頁從
+`raw.githubusercontent.com/<repo>/data/data/events-*.ndjson` 直接讀（支援 CORS），純前端算出：
+
+- 🔥 退訂熱力圖（星期 × 時段，哪格最常冒空位）
+- ⏰ 退訂釋出時刻（一天中幾點最容易撿；用 `nr` 分「新日期釋出」vs「一般退訂」）
+- ⚡ 撿場速度（空位多久被搶走的中位數）
+- 🏟 場館退訂排名（次數 + 平均面數）
+
+> 資料只能從上線後往前累積，約 1–2 週才有足夠樣本。冷啟動只建狀態、不記 appear，避免假爆量。
+> workflow 已設 `permissions: contents: write`；`data` 分支第一次由 `push-data.sh` 自動建立。
+
+### 事件欄位
+
+```json
+{"t":"<偵測 ISO UTC>","ev":"appear","lid":"WSSC","date":"2026-06-20","dow":6,"slot":"18:00–19:00","courts":3,"lead":4,"nr":1}
+{"t":"...","ev":"disappear","lid":"WSSC","date":"2026-06-20","slot":"18:00–19:00","dur":12.4,"lead":4}
+```
+
+`lead`=偵測當下距打球日幾天；`nr:1`=該日期第一次進窗（新釋出/搶頭香）。
+
+---
+
+## 健康監測（不讓雷達靜默失效）
+
+整套系統無人值守，若哪條外部命脈斷掉（官方 API 改版、日曆掛掉、cron-job.org 停跑、GitHub 停用排程），
+雷達會「靜默停擺」，你卻以為「最近沒退訂」。`notify.js` 內建兩層監測：
+
+- **(B) API 異常即時警報**：每輪統計有幾個場館正常回應。連續 **3 輪**「全部撈不到任何資料」才發一次
+  `⚠️ 羽球雷達警告`（避免暫時性閃失誤報），恢復時發 `✅ 羽球雷達恢復`。
+  「全部場館額滿」會回正常空陣列，**不會**被誤判為壞掉。
+- **(A) 每日心跳**：每天台灣 **09:00** 後發一則 `✅ 羽球雷達運作中`（含監看範圍、API 狀態、過去一天通知數）。
+  **哪天早上沒收到心跳 = 系統死了**（被動偵測，因為死掉的掃描器沒法自己回報死訊）。
+
+### 可選：真・dead-man's-switch（healthchecks.io）
+
+要主動偵測「掃描器整個停掉」，可接外部監測：
+
+1. 到 [healthchecks.io](https://healthchecks.io)（免費）建一個 Check（Period 例如 1 小時、Grace 30 分）
+2. 複製 Ping URL（`https://hc-ping.com/<uuid>`）
+3. GitHub repo → Settings → Secrets → Actions 新增 `HEALTHCHECK_URL` ＝該 URL
+4. 之後每次成功掃描會自動 ping；超時沒收到，healthchecks.io 會 email 你（獨立於 Telegram）
+
+未設 `HEALTHCHECK_URL` 時自動略過，不影響運作。
+
+---
+
+## 版本規則
+
+版本號使用年月日格式：`V<年>.<月>.<日>`，例如 V2026.06.16。
