@@ -49,9 +49,11 @@ const fmtDur = mins => {
   return `${(mins / 60).toFixed(1)} 小時`;
 };
 
-const card = { background:"#0f1923", border:"1px solid #1e293b", borderRadius:13, padding:"13px 13px 15px", marginBottom:12 };
-const title = { fontSize:13, fontWeight:700, marginBottom:3, color:"#e2e8f0" };
-const sub = { fontSize:10, color:"#64748b", marginBottom:10, lineHeight:1.5 };
+const GLASS = "radial-gradient(120% 80% at 100% 0%, rgba(74,222,128,0.045), transparent 52%), linear-gradient(160deg,#101a26,#0a0f17)";
+const card = { background:GLASS, border:"1px solid #1c2a3a", borderRadius:17, padding:"14px 14px 16px", marginBottom:12, boxShadow:"0 12px 30px rgba(0,0,0,0.45)" };
+const title = { fontSize:14, fontWeight:900, marginBottom:3, color:"#f8fafc", letterSpacing:"-.01em" };
+const sub = { fontSize:10, color:"#64748b", marginBottom:11, lineHeight:1.5 };
+const glow = (a)=>({ textShadow:`0 0 16px ${a}80` });
 
 function Loading() {
   return <div style={{textAlign:"center", color:"#64748b", fontSize:13, padding:"50px 20px"}}>
@@ -78,17 +80,18 @@ function EmptyState() {
   </div>;
 }
 
+const MEDAL = ["🥇","🥈","🥉"];
 function Bars({ data, color }) {
   // data: [{label, value, sub}]
   const max = Math.max(1, ...data.map(d => d.value));
-  return <div style={{display:"flex", flexDirection:"column", gap:5}}>
+  return <div style={{display:"flex", flexDirection:"column", gap:7}}>
     {data.map((d, i) => (
       <div key={i} style={{display:"flex", alignItems:"center", gap:8}}>
-        <span style={{fontSize:11, color:"#94a3b8", minWidth:52, textAlign:"right"}}>{d.label}</span>
-        <div style={{flex:1, height:16, background:"#0a1018", borderRadius:5, overflow:"hidden"}}>
-          <div style={{width:`${(d.value / max) * 100}%`, height:"100%", background:color, borderRadius:5, minWidth:d.value>0?3:0}}/>
+        <span style={{fontSize:11, color:"#cbd5e1", fontWeight:700, minWidth:62, textAlign:"right"}}>{MEDAL[i]?`${MEDAL[i]} `:""}{d.label}</span>
+        <div style={{flex:1, height:18, background:"#0b1018", borderRadius:6, overflow:"hidden", border:"1px solid #16202c"}}>
+          <div style={{width:`${(d.value / max) * 100}%`, height:"100%", background:"linear-gradient(90deg,#22c55e,#4ade80)", borderRadius:6, minWidth:d.value>0?3:0, boxShadow:i===0?"0 0 14px rgba(74,222,128,0.5)":"none"}}/>
         </div>
-        <span style={{fontSize:11, color:"#cbd5e1", minWidth:54}}>{d.sub != null ? d.sub : d.value}</span>
+        <span style={{fontSize:11, color:"#cbd5e1", minWidth:58}}>{d.sub != null ? d.sub : d.value}</span>
       </div>
     ))}
   </div>;
@@ -161,16 +164,19 @@ export default function DataTab() {
 
   return (
     <div>
-      {/* 涵蓋範圍 */}
-      <div style={{...card, padding:"10px 13px"}}>
-        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:6}}>
-          <span style={{fontSize:11, color:"#64748b"}}>
-            📈 累積 {days} 天 · {appears.length} 次冒空位 · {disappears.length} 次被搶
-          </span>
-          <span style={{fontSize:10, color:"#475569"}}>
-            {since ? `自 ${since.getMonth()+1}/${since.getDate()} 起` : ""}
-          </span>
+      {/* 涵蓋範圍 — 兩格巨大統計 */}
+      <div style={{display:"flex", gap:10, marginBottom:12}}>
+        <div style={{...card, flex:1, marginBottom:0, padding:"14px 12px", textAlign:"center"}}>
+          <div style={{fontSize:30, fontWeight:900, color:"#4ade80", ...glow("#4ade80"), letterSpacing:"-.02em"}}>{appears.length}</div>
+          <div style={{fontSize:10, color:"#94a3b8", marginTop:3, fontWeight:600}}>次冒空位</div>
         </div>
+        <div style={{...card, flex:1, marginBottom:0, padding:"14px 12px", textAlign:"center"}}>
+          <div style={{fontSize:30, fontWeight:900, color:"#fbbf24", ...glow("#fbbf24"), letterSpacing:"-.02em"}}>{disappears.length}</div>
+          <div style={{fontSize:10, color:"#94a3b8", marginTop:3, fontWeight:600}}>次被搶</div>
+        </div>
+      </div>
+      <div style={{fontSize:10, color:"#475569", textAlign:"center", margin:"-4px 0 12px"}}>
+        📈 累積 {days} 天{since ? ` · 自 ${since.getMonth()+1}/${since.getDate()} 起` : ""}
       </div>
 
       {/* 熱力圖 */}
@@ -189,7 +195,7 @@ export default function DataTab() {
                   const c = (heat[dow] && heat[dow][h]) || 0;
                   const a = c ? 0.18 + 0.82 * (c / heatMax) : 0;
                   return <div key={h} title={`週${WD[dow]} ${h}:00 — ${c} 次`}
-                    style={{width:18, height:18, borderRadius:3, background:c?`rgba(74,222,128,${a})`:"#0a1018", border:"1px solid #131c28"}}/>;
+                    style={{width:18, height:18, borderRadius:3, background:c?`rgba(74,222,128,${a})`:"#0b1018", border:"1px solid #131c28"}}/>;
                 })}
               </div>
             ))}
@@ -229,17 +235,17 @@ export default function DataTab() {
         <div style={title}>⚡ 撿場速度</div>
         <div style={sub}>空位出現後多久被搶走 — 越短代表手速要越快。</div>
         <div style={{display:"flex", gap:8}}>
-          <div style={{flex:1, background:"#0a1018", borderRadius:9, padding:"10px 8px", textAlign:"center"}}>
-            <div style={{fontSize:18, fontWeight:700, color:"#4ade80"}}>{fmtDur(medDur)}</div>
-            <div style={{fontSize:9, color:"#64748b", marginTop:2}}>被搶走中位數</div>
+          <div style={{flex:1, background:"#0b1018", borderRadius:12, padding:"12px 8px", textAlign:"center", border:"1px solid #16202c"}}>
+            <div style={{fontSize:24, fontWeight:900, color:"#4ade80", ...glow("#4ade80")}}>{fmtDur(medDur)}</div>
+            <div style={{fontSize:9, color:"#64748b", marginTop:3}}>被搶走中位數</div>
           </div>
-          <div style={{flex:1, background:"#0a1018", borderRadius:9, padding:"10px 8px", textAlign:"center"}}>
-            <div style={{fontSize:18, fontWeight:700, color:"#fbbf24"}}>{fastShare}%</div>
-            <div style={{fontSize:9, color:"#64748b", marginTop:2}}>15 分內被秒殺</div>
+          <div style={{flex:1, background:"#0b1018", borderRadius:12, padding:"12px 8px", textAlign:"center", border:"1px solid #16202c"}}>
+            <div style={{fontSize:24, fontWeight:900, color:"#fbbf24", ...glow("#fbbf24")}}>{fastShare}%</div>
+            <div style={{fontSize:9, color:"#64748b", marginTop:3}}>15 分內被秒殺</div>
           </div>
-          <div style={{flex:1, background:"#0a1018", borderRadius:9, padding:"10px 8px", textAlign:"center"}}>
-            <div style={{fontSize:18, fontWeight:700, color:"#f97316"}}>{fmtDur(median(peakDurs))}</div>
-            <div style={{fontSize:9, color:"#64748b", marginTop:2}}>尖峰時段</div>
+          <div style={{flex:1, background:"#0b1018", borderRadius:12, padding:"12px 8px", textAlign:"center", border:"1px solid #16202c"}}>
+            <div style={{fontSize:24, fontWeight:900, color:"#f97316", ...glow("#f97316")}}>{fmtDur(median(peakDurs))}</div>
+            <div style={{fontSize:9, color:"#64748b", marginTop:3}}>尖峰時段</div>
           </div>
         </div>
         {durs.length < 5 && <div style={{...sub, marginTop:8, marginBottom:0}}>樣本還少（{durs.length} 筆），多累積幾天會更準。</div>}

@@ -117,20 +117,15 @@ export default function App() {
   return (
     <div style={S.root}>
       <div style={S.hdr}>
-        <div style={{display:"flex",alignItems:"center",gap:9,padding:"13px 14px 7px"}}>
-          <span style={{fontSize:22}}>🏸</span>
-          <div>
-            <div style={{fontSize:16,fontWeight:700,color:"#e2e8f0"}}>台北羽球助手</div>
-            <div style={{fontSize:11,color:"#64748b",marginTop:1}}>PlayBadmintonTaipei · V2026.06.16</div>
-            <div style={{fontSize:10,color:"#64748b",display:"flex",gap:6}}>
-              {now.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"short"})} {now.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}
-            </div>
+        <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 15px"}}>
+          <span style={{fontSize:24,filter:"drop-shadow(0 0 10px rgba(74,222,128,0.35))"}}>🏸</span>
+          <div style={{flex:1}}>
+            <div style={{fontSize:17,fontWeight:900,color:"#f8fafc",letterSpacing:"-.01em"}}>台北羽球助手</div>
+            <div style={{fontSize:10.5,color:"#64748b",marginTop:2}}>PlayBadmintonTaipei · V2026.06.18</div>
           </div>
-        </div>
-        <div style={S.tabBar}>
-          {[["realtime","⚡ 即時空位"],["lucky","📋 已開放預約"],["plan","📅 搶場計畫"],["data","📊 數據"]].map(([v,l]) => (
-            <button key={v} onClick={()=>setTab(v)} style={{...S.tab,...(tab===v?S.tabOn:{})}}>{l}</button>
-          ))}
+          <div style={S.livePill}>
+            <span style={S.liveDot}/>LIVE {now.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",hour12:false})}
+          </div>
         </div>
       </div>
       <div style={S.body}>
@@ -138,6 +133,13 @@ export default function App() {
         {tab==="lucky"    && <LuckyTab    now={now} weekends={weekends} showToast={showToast} favs={favs} togFav={togFav} todayClicked={todayClicked} markClicked={markClicked}/>}
         {tab==="plan"     && <PlanTab     now={now} favs={favs} showToast={showToast}/>}
         {tab==="data"     && <DataTab/>}
+      </div>
+      <div style={S.navBar}>
+        {[["realtime","⚡","即時空位"],["lucky","📋","已開放"],["plan","📅","搶場計畫"],["data","📊","數據"]].map(([v,ic,l]) => (
+          <button key={v} onClick={()=>setTab(v)} style={{...S.navItem,...(tab===v?S.navOn:{})}}>
+            <span style={{fontSize:17}}>{ic}</span>{l}
+          </button>
+        ))}
       </div>
       {toast && <div style={S.toast}>{toast}</div>}
     </div>
@@ -183,18 +185,38 @@ function LuckyTab({ now, weekends, showToast, favs, togFav, todayClicked, markCl
     );
   }
 
+  const bookable = groups.filter(g => g.until);
+  const heroUntil = bookable.length ? bookable[0].until : null;
+  const heroAdv = bookable.length ? bookable[0].adv : null;
+  const heroVenueCount = bookable.reduce((acc,g) => acc + g.venues.length, 0);
   return (
     <div>
+      {/* Hero 已開放卡（藍） */}
+      <div style={S.hero("#60a5fa")}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div>
+            <div style={{fontSize:11,color:"#93c5fd",fontWeight:800,letterSpacing:".04em"}}>現在可約到</div>
+            <div style={{fontSize:26,fontWeight:900,color:"#bfdbfe",textShadow:"0 0 18px rgba(96,165,250,0.5)",marginTop:3,letterSpacing:"-.01em"}}>
+              {heroUntil ? fmtD(heroUntil) : "—"}
+            </div>
+            <div style={{fontSize:10,color:"#64748b",marginTop:3}}>{heroAdv?`提前 ${heroAdv} 天`:"依各場規則"}</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <span style={S.bigNum("#60a5fa",30)}>{heroVenueCount}</span>
+            <div style={{fontSize:11,color:"#93c5fd",fontWeight:700,marginTop:2}}>個場館</div>
+          </div>
+        </div>
+      </div>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
         <div style={{
           flex:1,background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.2)",
-          borderRadius:10,padding:"8px 12px",fontSize:11,color:"#fbbf24",lineHeight:1.6,
+          borderRadius:11,padding:"8px 12px",fontSize:11,color:"#fbbf24",lineHeight:1.6,
         }}>
           ⚠️ 規則推算，非即時查詢。實際空位請至官網確認。
         </div>
         <button onClick={()=>setMapMode(true)} style={{
-          marginLeft:8,padding:"10px 13px",borderRadius:10,border:"1px solid #1e293b",
-          background:"transparent",color:"#64748b",fontSize:13,cursor:"pointer",flexShrink:0,
+          marginLeft:8,padding:"10px 13px",borderRadius:12,border:"1px solid #233247",
+          background:"#0e1622",color:"#cbd5e1",fontSize:13,cursor:"pointer",flexShrink:0,
         }}>🗺</button>
       </div>
       {groups.map((g,gi) => (
@@ -342,41 +364,49 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
     );
   }
 
+  const heroCourts = Object.values(results).flatMap(d=>Object.values(d))
+    .reduce((acc,r)=> acc + (r.courts ? Object.values(r.courts).reduce((a,b)=>a+b,0) : (r.available?.length||0)), 0);
+  const heroDates = getScanDates();
+  const heroLabel = scanRange==="weekend" ? "本週末" : scanRange==="7d" ? "未來 7 天" : "未來 14 天";
+  const heroRange = heroDates.length ? `${heroDates[0].getMonth()+1}/${heroDates[0].getDate()}–${heroDates[heroDates.length-1].getMonth()+1}/${heroDates[heroDates.length-1].getDate()}` : "";
   return (
     <div>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+      {/* Hero 掃描卡 */}
+      <div style={S.hero("#4ade80")}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div>
+            <div style={{fontSize:11,color:"#86efac",fontWeight:800,letterSpacing:".04em"}}>{heroLabel} · 可搶空面數</div>
+            <div style={{fontSize:11,color:"#64748b",marginTop:4}}>{heroRange||"按下方掃描即時撈取"}</div>
+          </div>
+          <div style={{display:"flex",alignItems:"baseline",gap:4}}>
+            <span style={S.bigNum("#4ade80")}>{heroCourts}</span>
+            <span style={{fontSize:16,fontWeight:800,color:"#86efac"}}>面</span>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:8,marginTop:13}}>
+          <button onClick={scan} disabled={scanning} style={{flex:1,padding:"12px",borderRadius:13,border:"1px solid transparent",
+            background:scanning?"#0e1622":GREEN_GRAD,color:scanning?"#64748b":"#04230f",fontSize:13,fontWeight:800,
+            cursor:scanning?"wait":"pointer",boxShadow:scanning?"none":"0 8px 20px rgba(74,222,128,0.4)",
+            display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+            <span style={{display:"inline-block",animation:scanning?"spin 1s linear infinite":"none"}}>{scanning?"⟳":"🔍"}</span>
+            {scanning?(scanProgress||"掃描中…"):"自動掃描空位"}
+          </button>
+          <button onClick={()=>setMapMode(true)} style={{padding:"12px 16px",borderRadius:13,border:"1px solid #233247",background:"#0e1622",color:"#cbd5e1",fontSize:16,cursor:"pointer"}}>🗺</button>
+        </div>
+      </div>
       {/* Scan range selector */}
       <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center"}}>
         <span style={{fontSize:10,color:"#64748b"}}>範圍</span>
         {[["weekend","本週末"],["7d","未來7天"],["14d","未來14天"]].map(([k,label])=>(
           <button key={k} onClick={()=>setScanRange(k)} disabled={scanning} style={{
             padding:"5px 11px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"pointer",
-            border:`1px solid ${scanRange===k?"rgba(96,165,250,0.5)":"#1e293b"}`,
+            border:`1px solid ${scanRange===k?"rgba(96,165,250,0.5)":"#1c2a3a"}`,
             background:scanRange===k?"rgba(59,130,246,0.12)":"transparent",
             color:scanRange===k?"#60a5fa":"#64748b",
           }}>{label}</button>
         ))}
       </div>
-      {/* Top action buttons */}
-      <div style={{display:"flex",gap:8,marginBottom:14}}>
-        <button onClick={scan} disabled={scanning} style={{
-          flex:1,padding:"12px",borderRadius:11,border:"1px solid rgba(59,130,246,0.3)",
-          background:scanning?"#111827":"rgba(59,130,246,0.08)",
-          color:scanning?"#64748b":"#60a5fa",fontSize:13,fontWeight:700,cursor:scanning?"wait":"pointer",
-          display:"flex",alignItems:"center",justifyContent:"center",gap:6,
-        }}>
-          <span style={{display:"inline-block",animation:scanning?"spin 1s linear infinite":"none"}}>
-            {scanning?"⟳":"🔍"}
-          </span>
-          {scanning?(scanProgress||"掃描中…"):"自動掃描空位"}
-        </button>
-        <button onClick={()=>setMapMode(true)} style={{
-          padding:"12px 14px",borderRadius:11,border:"1px solid #1e293b",
-          background:"transparent",color:"#64748b",fontSize:12,fontWeight:600,cursor:"pointer",
-          display:"flex",alignItems:"center",gap:5,
-        }}>🗺 地圖檢視</button>
-      </div>
-      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-
       {/* Scan results - grouped by date */}
       {Object.keys(results).length>0 && (
         <div style={{marginBottom:14}}>
@@ -388,9 +418,9 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
             const col=DAY_COLOR[d.getDay()];
             const hasAny=Object.values(dayRes).some(r=>r.available?.length>0);
             return(
-              <div key={ds} style={{marginBottom:10,background:"#0a1018",borderRadius:11,border:`1px solid ${hasAny?"rgba(74,222,128,0.2)":"#1e293b"}`,overflow:"hidden"}}>
+              <div key={ds} style={{marginBottom:10,background:"#0b1018",borderRadius:11,border:`1px solid ${hasAny?"rgba(74,222,128,0.2)":"#1c2a3a"}`,overflow:"hidden"}}>
                 {/* Date header */}
-                <div style={{padding:"8px 12px",background:hasAny?"rgba(74,222,128,0.05)":"transparent",borderBottom:"1px solid #1e293b",display:"flex",alignItems:"center",gap:6}}>
+                <div style={{padding:"8px 12px",background:hasAny?"rgba(74,222,128,0.05)":"transparent",borderBottom:"1px solid #1c2a3a",display:"flex",alignItems:"center",gap:6}}>
                   <span style={{fontSize:12,fontWeight:700,color:col}}>{d.getMonth()+1}/{d.getDate()}（{["日","一","二","三","四","五","六"][d.getDay()]}）</span>
                   {hasAny
                     ? <span style={{fontSize:10,color:"#4ade80"}}>✅ 有空位</span>
@@ -420,10 +450,10 @@ function RealtimeTab({ now, showToast, favs, togFav, todayClicked, markClicked }
                           <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
                             {res.available.map(t=>(
                               <a key={t} href={buildBookingUrl(v.lid,d)} target="_blank" rel="noreferrer"
-                                style={{fontSize:11,fontWeight:600,padding:"3px 9px",borderRadius:6,
-                                  background:"rgba(74,222,128,0.1)",color:"#4ade80",
+                                style={{display:"inline-flex",alignItems:"baseline",gap:3,fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:8,
+                                  background:"rgba(74,222,128,0.1)",color:"#86efac",
                                   border:"1px solid rgba(74,222,128,0.3)",textDecoration:"none"}}>
-                                {t}{res.courts?.[t] ? ` ×${res.courts[t]}面` : ""} ↗
+                                {t}{res.courts?.[t] ? <><span style={{fontSize:17,fontWeight:900,color:"#4ade80",textShadow:"0 0 10px rgba(74,222,128,0.6)",marginLeft:2}}>{res.courts[t]}</span><span style={{fontSize:10}}>面</span></> : null}<span style={{fontSize:10,opacity:0.8,marginLeft:2}}>↗</span>
                               </a>
                             ))}
                           </div>
@@ -466,13 +496,13 @@ function RealtimeVCard({ v, lid, now, weekendDates, favs, togFav, todayClicked, 
             <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
               <span style={{fontSize:14,fontWeight:700}}>{v.name}</span>
               {isFav && <span>⭐</span>}
-              {booked && <span style={{fontSize:10,color:"#64748b",background:"#1e293b",padding:"1px 6px",borderRadius:5}}>今日已點</span>}
+              {booked && <span style={{fontSize:10,color:"#64748b",background:"#1c2a3a",padding:"1px 6px",borderRadius:5}}>今日已點</span>}
             </div>
             <div style={{fontSize:11,color:"#64748b",marginTop:2}}>{v.floor} · {v.courts}面 · {v.openHours}</div>
             <div style={{fontSize:11,color:"#475569",marginTop:2,display:"flex",alignItems:"center",flexWrap:"wrap",gap:5}}>
               <span>📍 {v.address}</span>
               <a href={v.officialUrl} target="_blank" rel="noreferrer"
-                style={{fontSize:10,padding:"2px 8px",borderRadius:6,background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",textDecoration:"none"}}>
+                style={{fontSize:10,padding:"2px 8px",borderRadius:6,background:"#1c2a3a",border:"1px solid #334155",color:"#94a3b8",textDecoration:"none"}}>
                 官網↗
               </a>
             </div>
@@ -528,7 +558,7 @@ function RealtimeVCard({ v, lid, now, weekendDates, favs, togFav, todayClicked, 
       </button>
 
       {open && (
-        <div style={{padding:"12px 12px 14px",borderTop:"1px solid #1e293b"}}>
+        <div style={{padding:"12px 12px 14px",borderTop:"1px solid #1c2a3a"}}>
           {/* Photos */}
           <div style={{display:"flex",gap:7,overflowX:"auto",marginBottom:12}}>
             {v.photos.map((p,i)=>(
@@ -549,12 +579,12 @@ function RealtimeVCard({ v, lid, now, weekendDates, favs, togFav, todayClicked, 
           <div style={{marginBottom:12}}>
             <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>時段費用</div>
             {v.pricing.map((p,i)=>(
-              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"7px 10px",borderRadius:8,background:i%2?"#0a1018":"#0d1520",marginBottom:3}}>
+              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"7px 10px",borderRadius:8,background:i%2?"#0b1018":"#0d1520",marginBottom:3}}>
                 <div>
                   <span style={{fontSize:12,fontWeight:700,color:i===0?"#93c5fd":"#f97316"}}>{p.label}</span>
                   <div style={{fontSize:10,color:"#64748b",marginTop:1}}>{p.times}</div>
                 </div>
-                <span style={{fontSize:12,fontWeight:700,color:"#e2e8f0",whiteSpace:"nowrap",marginLeft:8}}>{p.price}</span>
+                <span style={{fontSize:12,fontWeight:700,color:"#f1f5f9",whiteSpace:"nowrap",marginLeft:8}}>{p.price}</span>
               </div>
             ))}
           </div>
@@ -562,7 +592,7 @@ function RealtimeVCard({ v, lid, now, weekendDates, favs, togFav, todayClicked, 
           <div style={{marginBottom:12}}>
             <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>停車資訊</div>
             {[["🚗 汽車",v.parking.car],["🏍 室內機車",v.parking.motoIn],["🏍 室外機車",v.parking.motoOut]].map(([label,val])=>(
-              <div key={label} style={{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid #1e293b"}}>
+              <div key={label} style={{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid #1c2a3a"}}>
                 <span style={{fontSize:11,color:"#64748b",minWidth:76}}>{label}</span>
                 <span style={{fontSize:11,color:"#94a3b8"}}>{val}</span>
               </div>
@@ -572,8 +602,8 @@ function RealtimeVCard({ v, lid, now, weekendDates, favs, togFav, todayClicked, 
           <div>
             <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>精選評論</div>
             {v.reviews.map((r,i)=>(
-              <div key={i} style={{padding:"8px 10px",borderRadius:8,background:"#0a1018",marginBottom:5}}>
-                <div style={{fontSize:11,color:"#e2e8f0",lineHeight:1.6}}>「{r.text}」</div>
+              <div key={i} style={{padding:"8px 10px",borderRadius:8,background:"#0b1018",marginBottom:5}}>
+                <div style={{fontSize:11,color:"#f1f5f9",lineHeight:1.6}}>「{r.text}」</div>
                 <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
                   <span style={{fontSize:10,color:"#64748b"}}>— {r.author}</span>
                   <span style={{fontSize:10}}>{"⭐".repeat(r.stars)}</span>
@@ -644,14 +674,14 @@ function VCard({ v, now, weekends, favs, togFav, todayClicked, markClicked, show
             <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
               <span style={{fontSize:14,fontWeight:700}}>{v.name}</span>
               {isFav && <span style={{fontSize:11}}>⭐</span>}
-              {booked && <span style={{fontSize:10,color:"#64748b",background:"#1e293b",padding:"1px 6px",borderRadius:5}}>今日已點</span>}
+              {booked && <span style={{fontSize:10,color:"#64748b",background:"#1c2a3a",padding:"1px 6px",borderRadius:5}}>今日已點</span>}
             </div>
             <div style={{fontSize:11,color:"#64748b",marginTop:2}}>{v.floor} · {v.courts}面 · {v.openHours}</div>
             {/* Address + 官網 button */}
             <div style={{fontSize:11,color:"#475569",marginTop:3,display:"flex",alignItems:"center",flexWrap:"wrap",gap:5}}>
               <span>📍 {v.address}{dist?` (${dist}km)`:""}</span>
               <a href={v.officialUrl} target="_blank" rel="noreferrer"
-                style={{fontSize:10,padding:"2px 8px",borderRadius:6,background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",textDecoration:"none",flexShrink:0}}>
+                style={{fontSize:10,padding:"2px 8px",borderRadius:6,background:"#1c2a3a",border:"1px solid #334155",color:"#94a3b8",textDecoration:"none",flexShrink:0}}>
                 官網 ↗
               </a>
             </div>
@@ -673,7 +703,7 @@ function VCard({ v, now, weekends, favs, togFav, todayClicked, markClicked, show
               const ot=getOpenTime(v,d), ok=canNow(v,d,now), opn=ot&&now>=ot;
               return (
                 <div key={d.toISOString()} style={{padding:"5px 9px",borderRadius:8,textAlign:"center",minWidth:56,
-                  border:`1px solid ${ok?"rgba(74,222,128,0.5)":opn?"#1e293b":dc(d)+"55"}`,
+                  border:`1px solid ${ok?"rgba(74,222,128,0.5)":opn?"#1c2a3a":dc(d)+"55"}`,
                   background:ok?"rgba(74,222,128,0.07)":"transparent",
                   color:ok?"#4ade80":opn?"#374151":dc(d),
                   opacity:opn&&!ok?0.4:1}}>
@@ -702,7 +732,7 @@ function VCard({ v, now, weekends, favs, togFav, todayClicked, markClicked, show
       </button>
       {/* Detail section – no duplicate info */}
       {open && (
-        <div style={{padding:"12px 12px 14px",borderTop:"1px solid #1e293b"}}>
+        <div style={{padding:"12px 12px 14px",borderTop:"1px solid #1c2a3a"}}>
           {/* Photos */}
           <div style={{display:"flex",gap:7,overflowX:"auto",marginBottom:12}}>
             {v.photos.map((p,i) => (
@@ -723,12 +753,12 @@ function VCard({ v, now, weekends, favs, togFav, todayClicked, markClicked, show
           <div style={{marginBottom:12}}>
             <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>時段費用</div>
             {v.pricing.map((p,i) => (
-              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"7px 10px",borderRadius:8,background:i%2?"#0a1018":"#0d1520",marginBottom:3}}>
+              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"7px 10px",borderRadius:8,background:i%2?"#0b1018":"#0d1520",marginBottom:3}}>
                 <div>
                   <span style={{fontSize:12,fontWeight:700,color:i===0?"#93c5fd":"#f97316"}}>{p.label}</span>
                   <div style={{fontSize:10,color:"#64748b",marginTop:1}}>{p.times}</div>
                 </div>
-                <span style={{fontSize:12,fontWeight:700,color:"#e2e8f0",whiteSpace:"nowrap",marginLeft:8}}>{p.price}</span>
+                <span style={{fontSize:12,fontWeight:700,color:"#f1f5f9",whiteSpace:"nowrap",marginLeft:8}}>{p.price}</span>
               </div>
             ))}
           </div>
@@ -736,7 +766,7 @@ function VCard({ v, now, weekends, favs, togFav, todayClicked, markClicked, show
           <div style={{marginBottom:12}}>
             <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>停車資訊</div>
             {[["🚗 汽車",v.parking.car],["🏍 室內機車",v.parking.motoIn],["🏍 室外機車",v.parking.motoOut]].map(([label,val]) => (
-              <div key={label} style={{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid #1e293b"}}>
+              <div key={label} style={{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid #1c2a3a"}}>
                 <span style={{fontSize:11,color:"#64748b",minWidth:76}}>{label}</span>
                 <span style={{fontSize:11,color:"#94a3b8"}}>{val}</span>
               </div>
@@ -767,8 +797,8 @@ function VCard({ v, now, weekends, favs, togFav, todayClicked, markClicked, show
           <div>
             <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>精選評論</div>
             {v.reviews.map((r,i) => (
-              <div key={i} style={{padding:"8px 10px",borderRadius:8,background:"#0a1018",marginBottom:5}}>
-                <div style={{fontSize:11,color:"#e2e8f0",lineHeight:1.6}}>「{r.text}」</div>
+              <div key={i} style={{padding:"8px 10px",borderRadius:8,background:"#0b1018",marginBottom:5}}>
+                <div style={{fontSize:11,color:"#f1f5f9",lineHeight:1.6}}>「{r.text}」</div>
                 <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
                   <span style={{fontSize:10,color:"#64748b"}}>— {r.author}</span>
                   <span style={{fontSize:10}}>{"⭐".repeat(r.stars)}</span>
@@ -841,7 +871,7 @@ function MapView({ venues, now, weekends, favs, togFav, todayClicked, markClicke
 
   return (
     <div>
-      <div style={{borderRadius:12,overflow:"hidden",border:"1px solid #1e293b",marginBottom:10}}>
+      <div style={{borderRadius:12,overflow:"hidden",border:"1px solid #1c2a3a",marginBottom:10}}>
         {!ready && <div style={{height:280,display:"flex",alignItems:"center",justifyContent:"center",background:"#08111e",color:"#64748b"}}>🗺 地圖載入中…</div>}
         <div ref={mapDivRef} style={{height:280,display:ready?"block":"none"}}/>
         <div style={{background:"#08111e",padding:"4px 10px 5px",fontSize:10,color:"#475569"}}>
@@ -862,12 +892,12 @@ function MapView({ venues, now, weekends, favs, togFav, todayClicked, markClicke
         <button key={v.id} onClick={()=>setSelId(id=>id===v.id?null:v.id)}
           style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",
             padding:"8px 11px",borderRadius:9,marginBottom:5,cursor:"pointer",textAlign:"left",
-            border:`1px solid ${selId===v.id?"rgba(74,222,128,0.5)":"#1e293b"}`,
-            background:selId===v.id?"rgba(74,222,128,0.05)":"#0f1923"}}>
+            border:`1px solid ${selId===v.id?"rgba(74,222,128,0.5)":"#1c2a3a"}`,
+            background:selId===v.id?"rgba(74,222,128,0.05)":"#0e1622"}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <span style={{width:8,height:8,borderRadius:"50%",background:"#4ade80",display:"inline-block",flexShrink:0,boxShadow:"0 0 5px #4ade80"}}/>
             <div>
-              <div style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{v.name}</div>
+              <div style={{fontSize:13,fontWeight:600,color:"#f1f5f9"}}>{v.name}</div>
               <div style={{fontSize:10,color:"#64748b"}}>{v.district} · {v.floor} · {v.courts}面</div>
             </div>
           </div>
@@ -984,11 +1014,12 @@ function PlanTab({ now, favs, showToast }) {
             const isPast=sod(d)<=sod(now),on=isSel(d);
             return (
               <button key={i} disabled={isPast} onClick={()=>togDate(d)} style={{
-                padding:"5px 2px",borderRadius:7,cursor:isPast?"default":"pointer",
-                border:`1px solid ${on?dc(d):"transparent"}`,
-                background:on?DAY_BG[d.getDay()]:"transparent",
+                padding:"6px 2px",borderRadius:10,cursor:isPast?"default":"pointer",
+                border:"1px solid transparent",
+                background:on?GREEN_GRAD:"transparent",
+                boxShadow:on?"0 4px 12px rgba(74,222,128,0.34)":"none",
                 opacity:isPast?0.2:1,textAlign:"center"}}>
-                <div style={{fontSize:12,fontWeight:on?700:400,color:on?dc(d):"#94a3b8"}}>{d.getDate()}</div>
+                <div style={{fontSize:12,fontWeight:on?900:500,color:on?"#04230f":"#94a3b8"}}>{d.getDate()}</div>
               </button>
             );
           })}
@@ -1011,7 +1042,7 @@ function PlanTab({ now, favs, showToast }) {
           <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:8}}>
             {VENUES.map(v=>{const on=selIds.includes(v.id);return(
               <button key={v.id} onClick={()=>togV(v.id)} style={{padding:"3px 8px",borderRadius:7,fontSize:11,cursor:"pointer",
-                border:`1px solid ${on?"#4ade80":"#1e293b"}`,background:on?"rgba(74,222,128,0.08)":"transparent",color:on?"#4ade80":"#64748b"}}>
+                border:`1px solid ${on?"#4ade80":"#1c2a3a"}`,background:on?"rgba(74,222,128,0.08)":"transparent",color:on?"#4ade80":"#64748b"}}>
                 {on?"✓ ":""}{v.name}
               </button>
             );})}
@@ -1038,6 +1069,7 @@ function PlanTab({ now, favs, showToast }) {
           {sorted.map(g=>{
             const isPast=g.ot<now, isNear=!isPast&&g.ot-now<3600000;
             const col=isPast?"#64748b":isNear?"#4ade80":"#60a5fa";
+            const cdDays=Math.max(0,Math.ceil((g.ot-now)/86400000));
             const copyG=()=>navigator.clipboard.writeText(
               `🏸 搶場提醒\n⏰ ${fmtD(g.ot)} ${fmtH(g.ot.getHours())} 開搶\n`+
               g.items.map(i=>`• ${i.v.name} → 搶 ${fmtD(i.d)}`).join("\n")
@@ -1054,6 +1086,11 @@ function PlanTab({ now, favs, showToast }) {
                     <div style={{fontSize:10,color:"#475569",marginTop:1}}>
                       {g.items.length}個場館 · 搶 {[...new Set(g.items.map(i=>fmtD(i.d)))].join(" / ")}
                     </div>
+                    {!isPast&&<div style={{marginTop:6,display:"flex",alignItems:"baseline",gap:4}}>
+                      <span style={{fontSize:10,color:"#64748b"}}>倒數</span>
+                      <span style={{fontSize:26,fontWeight:900,color:col,textShadow:`0 0 16px ${col}80`,lineHeight:1}}>{cdDays}</span>
+                      <span style={{fontSize:11,color:"#94a3b8"}}>天</span>
+                    </div>}
                   </div>
                   <div style={{display:"flex",gap:4}}>
                     <button onClick={copyG} style={S.smBtn}>💬</button>
@@ -1078,7 +1115,7 @@ function PlanTab({ now, favs, showToast }) {
             );
           })}
           {/* Action buttons at bottom of results */}
-          <div style={{display:"flex",gap:7,marginTop:8,paddingTop:12,borderTop:"1px solid #1e293b"}}>
+          <div style={{display:"flex",gap:7,marginTop:8,paddingTop:12,borderTop:"1px solid #1c2a3a"}}>
             <button onClick={addAllICS}    style={{...S.allBtn,flex:1}}>📅 全加行事曆</button>
             <button onClick={shareLineAll} style={{...S.allBtn,flex:1,background:"rgba(74,222,128,0.04)"}}>💬 分享 LINE</button>
           </div>
@@ -1088,29 +1125,36 @@ function PlanTab({ now, favs, showToast }) {
   );
 }
 
+const GLASS = "radial-gradient(120% 80% at 100% 0%, rgba(74,222,128,0.045), transparent 52%), linear-gradient(160deg,#101a26,#0a0f17)";
+const GREEN_GRAD = "linear-gradient(135deg,#4ade80,#22c55e)";
 const S={
-  // V2026.06.11
-  root:{minHeight:"100vh",background:"#07090f",color:"#e2e8f0",fontFamily:"'Noto Sans TC','PingFang TC',sans-serif",maxWidth:480,margin:"0 auto"},
-  hdr:{background:"#0d1521",borderBottom:"1px solid #1e293b",position:"sticky",top:0,zIndex:10},
-  tabBar:{display:"flex",borderTop:"1px solid #1e293b"},
-  tab:{flex:1,padding:"12px 8px",background:"none",border:"none",color:"#64748b",fontSize:13,fontWeight:500,cursor:"pointer",borderBottom:"2px solid transparent"},
-  tabOn:{color:"#e2e8f0",borderBottomColor:"#4ade80"},
-  body:{padding:"12px 12px 80px"},
-  chip:{padding:"4px 12px",borderRadius:20,border:"1px solid #1e293b",background:"transparent",color:"#64748b",fontSize:12,cursor:"pointer"},
-  chipOn:{borderColor:"#4ade80",background:"rgba(74,222,128,0.1)",color:"#4ade80"},
+  root:{minHeight:"100vh",background:"#05070b",color:"#f1f5f9",fontFamily:"'Noto Sans TC','PingFang TC',sans-serif",maxWidth:480,margin:"0 auto",position:"relative"},
+  hdr:{background:"radial-gradient(120% 100% at 0% 0%, #11241c, #0a0f17 60%)",borderBottom:"1px solid #16202c",position:"sticky",top:0,zIndex:10},
+  livePill:{display:"flex",alignItems:"center",gap:5,padding:"4px 11px",borderRadius:20,background:"rgba(74,222,128,0.1)",border:"1px solid rgba(74,222,128,0.28)",color:"#86efac",fontSize:11,fontWeight:800,letterSpacing:".04em"},
+  liveDot:{width:7,height:7,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 8px #4ade80,0 0 3px #4ade80"},
+  navBar:{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,display:"flex",gap:6,padding:"8px 10px 12px",background:"rgba(5,7,11,0.92)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderTop:"1px solid #16202c",zIndex:50},
+  navItem:{flex:1,padding:"8px 4px",borderRadius:14,background:"#0e1622",border:"1px solid #16202c",color:"#64748b",fontSize:10.5,fontWeight:700,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,lineHeight:1.1},
+  navOn:{background:GREEN_GRAD,color:"#04230f",border:"1px solid transparent",boxShadow:"0 6px 18px rgba(74,222,128,0.34)"},
+  body:{padding:"15px 13px 96px"},
+  chip:{padding:"5px 13px",borderRadius:20,border:"1px solid #233247",background:"transparent",color:"#94a3b8",fontSize:12,fontWeight:700,cursor:"pointer"},
+  chipOn:{border:"1px solid transparent",background:GREEN_GRAD,color:"#04230f",boxShadow:"0 4px 12px rgba(74,222,128,0.28)"},
   empty:{textAlign:"center",color:"#475569",fontSize:13,padding:"44px 20px",lineHeight:2},
-  card:{background:"#0f1923",border:"1px solid #1e293b",borderRadius:13,marginBottom:10,overflow:"hidden"},
-  note:{padding:"5px 9px",borderRadius:7,background:"#0a1018",fontSize:11,color:"#94a3b8"},
-  cardBtns:{display:"flex",gap:6,padding:"6px 11px"},
-  phoneBtn:{flex:1,padding:"9px 5px",borderRadius:9,textAlign:"center",background:"#111827",border:"1px solid #1e293b",color:"#94a3b8",fontSize:11,textDecoration:"none"},
-  bookBtn:{flex:1.6,padding:"9px 5px",borderRadius:9,textAlign:"center",background:"rgba(74,222,128,0.1)",border:"1px solid rgba(74,222,128,0.25)",color:"#4ade80",fontSize:13,fontWeight:700,textDecoration:"none"},
-  expandBtn:{width:"100%",padding:"8px",background:"#0a1018",border:"none",borderTop:"1px solid #1e293b",color:"#64748b",fontSize:11,cursor:"pointer"},
-  planBox:{background:"#0f1923",border:"1px solid #1e293b",borderRadius:13,padding:"12px 12px 13px",marginBottom:10},
-  planTitle:{fontSize:13,fontWeight:700,marginBottom:8},
-  calNav:{padding:"2px 8px",borderRadius:6,border:"1px solid #1e293b",background:"transparent",color:"#94a3b8",cursor:"pointer",fontSize:14},
-  allBtn:{padding:"12px",borderRadius:10,border:"1px solid rgba(74,222,128,0.3)",background:"rgba(74,222,128,0.07)",color:"#4ade80",fontSize:13,fontWeight:700,cursor:"pointer"},
-  gCard:{background:"#0f1923",border:"1px solid #1e293b",borderRadius:12,padding:"11px",marginBottom:8},
-  gItem:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 8px",borderRadius:7,background:"#0a1018",marginBottom:3},
-  smBtn:{padding:"5px 8px",borderRadius:7,border:"1px solid #1e293b",background:"#111827",color:"#94a3b8",fontSize:13,cursor:"pointer"},
-  toast:{position:"fixed",bottom:26,left:"50%",transform:"translateX(-50%)",background:"#1e293b",color:"#e2e8f0",padding:"9px 20px",borderRadius:20,fontSize:13,fontWeight:600,zIndex:200,boxShadow:"0 4px 20px rgba(0,0,0,0.5)",whiteSpace:"nowrap"},
+  card:{background:GLASS,border:"1px solid #1c2a3a",borderRadius:17,marginBottom:11,overflow:"hidden",boxShadow:"0 12px 30px rgba(0,0,0,0.45)"},
+  note:{padding:"6px 10px",borderRadius:9,background:"#0b1018",fontSize:11,color:"#94a3b8"},
+  cardBtns:{display:"flex",gap:7,padding:"8px 12px 12px"},
+  phoneBtn:{flex:1,padding:"11px 5px",borderRadius:12,textAlign:"center",background:"#0e1622",border:"1px solid #233247",color:"#cbd5e1",fontSize:12,fontWeight:700,textDecoration:"none"},
+  bookBtn:{flex:2,padding:"11px 5px",borderRadius:12,textAlign:"center",background:GREEN_GRAD,border:"1px solid transparent",color:"#04230f",fontSize:13,fontWeight:800,textDecoration:"none",boxShadow:"0 8px 20px rgba(74,222,128,0.4)"},
+  expandBtn:{width:"100%",padding:"9px",background:"#0b1018",border:"none",borderTop:"1px solid #16202c",color:"#64748b",fontSize:11,fontWeight:600,cursor:"pointer"},
+  planBox:{background:GLASS,border:"1px solid #1c2a3a",borderRadius:17,padding:"14px 14px 15px",marginBottom:11,boxShadow:"0 12px 30px rgba(0,0,0,0.45)"},
+  planTitle:{fontSize:14,fontWeight:900,marginBottom:9,letterSpacing:"-.01em"},
+  calNav:{padding:"3px 10px",borderRadius:9,border:"1px solid #233247",background:"#0e1622",color:"#cbd5e1",cursor:"pointer",fontSize:14,fontWeight:700},
+  allBtn:{padding:"13px",borderRadius:13,border:"1px solid transparent",background:GREEN_GRAD,color:"#04230f",fontSize:13,fontWeight:800,cursor:"pointer",boxShadow:"0 8px 20px rgba(74,222,128,0.34)"},
+  gCard:{background:"radial-gradient(120% 80% at 100% 0%, rgba(239,68,68,0.06), transparent 52%), linear-gradient(160deg,#1a1116,#0e0a0d)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:16,padding:"13px",marginBottom:9,boxShadow:"0 0 24px rgba(239,68,68,0.07),0 12px 30px rgba(0,0,0,0.45)"},
+  gItem:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",borderRadius:10,background:"#0b1018",marginBottom:4},
+  smBtn:{padding:"6px 9px",borderRadius:9,border:"1px solid #233247",background:"#0e1622",color:"#cbd5e1",fontSize:13,cursor:"pointer"},
+  toast:{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:"#1c2a3a",color:"#f1f5f9",padding:"10px 22px",borderRadius:20,fontSize:13,fontWeight:700,zIndex:200,boxShadow:"0 8px 26px rgba(0,0,0,0.6)",whiteSpace:"nowrap"},
+  hero:(accent)=>({position:"relative",overflow:"hidden",borderRadius:18,padding:"15px 16px",marginBottom:13,
+    background:`radial-gradient(130% 100% at 100% 0%, ${accent}22, transparent 55%), linear-gradient(150deg,#101a26,#0a0f17)`,
+    border:`1px solid ${accent}44`,boxShadow:`0 0 30px ${accent}1f,0 12px 30px rgba(0,0,0,0.5)`}),
+  bigNum:(accent,sz)=>({fontSize:sz||52,fontWeight:900,lineHeight:1,color:accent,textShadow:`0 0 22px ${accent}80`,letterSpacing:"-.02em"}),
 };
