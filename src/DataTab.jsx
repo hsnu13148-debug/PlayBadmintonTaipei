@@ -146,11 +146,16 @@ export default function DataTab() {
   });
   const activeHours = relByHour.map((v, h) => ({ h, ...v })).filter(v => v.retry + v.fresh > 0);
 
-  // ── 撿場速度：disappear dur 中位數 ──
-  const durs = disappears.map(e => e.dur).filter(d => d != null && d > 0);
+  // ── 撿場速度：disappear dur 中位數（只用高精度樣本）──
+  // prec＝量測不確定度(秒)＝距上次看到它多久。<=90 代表被搶走時刻是密集追蹤/熱區量到的（誤差約 1 分內）。
+  // 沒 prec 的是舊事件或一般 5–15 分掃描，dur 誤差大會把中位數拉偏，故排除。沒有高精度樣本時退回全部。
+  const hp = disappears.filter(e => e.prec != null && e.prec <= 90);
+  const durSrc = hp.length ? hp : disappears;
+  const hpMode = hp.length > 0;
+  const durs = durSrc.map(e => e.dur).filter(d => d != null && d >= 0);
   const medDur = median(durs);
-  const peakDurs = disappears.filter(e => { const h = startHour(e.slot); return h >= 18 || (e.dow !== undefined && [0,6].includes(e.dow) && h >= 12); }).map(e => e.dur).filter(d => d != null && d > 0);
-  const fastShare = durs.length ? Math.round(durs.filter(d => d <= 15).length / durs.length * 100) : 0;
+  const peakDurs = durSrc.filter(e => { const h = startHour(e.slot); return h >= 18 || (e.dow !== undefined && [0,6].includes(e.dow) && h >= 12); }).map(e => e.dur).filter(d => d != null && d >= 0);
+  const fastShare = durs.length ? Math.round(durs.filter(d => d <= 5).length / durs.length * 100) : 0;
 
   // ── 場館排名：appear 次數 + 平均面數 ──
   const byVenue = {};
@@ -233,7 +238,7 @@ export default function DataTab() {
       {/* 撿場速度 */}
       <div style={card}>
         <div style={title}>⚡ 撿場速度</div>
-        <div style={sub}>空位出現後多久被搶走 — 越短代表手速要越快。</div>
+        <div style={sub}>空位出現後多久被搶走 — 越短代表手速要越快。{hpMode ? `僅採高精度樣本（密集追蹤量到，誤差約 1 分內）${hp.length} 筆。` : "目前用全部樣本估算，精度較粗；密集追蹤上線後會自動換成高精度。"}</div>
         <div style={{display:"flex", gap:8}}>
           <div style={{flex:1, background:"#0b1018", borderRadius:12, padding:"12px 8px", textAlign:"center", border:"1px solid #16202c"}}>
             <div style={{fontSize:24, fontWeight:900, color:"#4ade80", ...glow("#4ade80")}}>{fmtDur(medDur)}</div>
@@ -241,7 +246,7 @@ export default function DataTab() {
           </div>
           <div style={{flex:1, background:"#0b1018", borderRadius:12, padding:"12px 8px", textAlign:"center", border:"1px solid #16202c"}}>
             <div style={{fontSize:24, fontWeight:900, color:"#fbbf24", ...glow("#fbbf24")}}>{fastShare}%</div>
-            <div style={{fontSize:9, color:"#64748b", marginTop:3}}>15 分內被秒殺</div>
+            <div style={{fontSize:9, color:"#64748b", marginTop:3}}>5 分內被秒殺</div>
           </div>
           <div style={{flex:1, background:"#0b1018", borderRadius:12, padding:"12px 8px", textAlign:"center", border:"1px solid #16202c"}}>
             <div style={{fontSize:24, fontWeight:900, color:"#f97316", ...glow("#f97316")}}>{fmtDur(median(peakDurs))}</div>
