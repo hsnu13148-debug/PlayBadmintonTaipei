@@ -1,13 +1,18 @@
-// scripts/notify.js - V2026.06.16e
-// 空位監看 + 事件記錄 + 搶頭香 + 健康監測 + 熱區迴圈。依 watch.json 掃描 /api/all。
+// scripts/notify.js - V2026.06.18
+// 空位監看 + 事件記錄 + 搶頭香 + 健康監測 + 熱區迴圈 + 事件觸發密集追蹤。依 watch.json 掃描 /api/all。
 //  - mode="holiday"：放假日(含國定假日)全天 + 前一晚通知；抓不到日曆退回週末。mode="rules" 相容。
 //  - 搶頭香：某日期第一次進掃描窗→新釋出(場最多)，通知標🆕、優先掃、事件記 nr:1。
 //  - 健康監測：連續3輪 API 全撈不到→⚠️警報、恢復→✅；每日台灣09:00後發心跳；可選 HEALTHCHECK_URL。
 //  - 熱區迴圈：落在 hotWindows 時間窗內時，改成每 intervalSec 秒密集掃指定 lead 的日期、迴圈到窗結束。
 //    （00:00–00:20 掃新釋出+付費過時第二波；20:00–22:00 掃使用日前 1–3 天的退訂。）
+//  - 事件觸發密集追蹤（reactiveBurst）：正常輪一旦偵測到 appear（新退訂），立刻針對那些日期切進
+//    每 ~60s 的密集 loop，追到它們都被搶走或逾時（預設 10 分）。目的：把「被搶走的時刻」量準。
+//    注意：解析度受 /api/all 的 Vercel 快取 s-maxage=60 限制，最細約 60 秒，刻意不繞快取以保護官方 server。
 //  - 事件：監看場館全時段 appear/disappear → data/events-YYYY-MM.ndjson（推 data 分支）。
+//    disappear 帶 dur(分,自首次偵測)、prec(秒,本次量測不確定度=距上次看到它多久)、burst(1=密集追蹤期間量到)。
 // 環境變數：TELEGRAM_BOT_TOKEN、TELEGRAM_CHAT_ID（未設定 dry-run）、HEALTHCHECK_URL（可選）、
-//           FORCE_RUN（無視安靜/間隔）、HOT_FORCE=N（測試：強制熱區迴圈跑 N 輪、間隔0）。
+//           FORCE_RUN（無視安靜/間隔）、HOT_FORCE=N（測試：強制熱區迴圈跑 N 輪、間隔0）、
+//           BURST_TEST=N（測試：密集追蹤間隔歸零、最多 N 輪）。
 
 const fs = require('fs');
 const path = require('path');
@@ -85,7 +90,7 @@ async function sendTelegram(text) {
 // 掃一組日期：與 prevSlots 比對發 appear/disappear 事件、發通知。回傳本組的新 slots 與統計。
 // disappear 只看「本組有掃的日期」，避免熱區只掃部分日期時把沒掃的誤判成消失。
 async function scanCycle(ctx) {
-  const { datesToScan, prevSlots, cold, isNewDate, venues, minCourts, today, todayStr } = ctx;
+  const { datesToScan, prevSlots, cold, isNewDate, venues, minCourts, today, todayStr, burst } = ctx;
   const observed = [], matches = [];
   let okResp = 0, errResp = 0;
   const scannedSet = new Set(datesToScan.map(a => a.ds));
@@ -115,12 +120,14 @@ async function scanCycle(ctx) {
   const observedMap = {};
   observed.forEach(o => { observedMap[o.key] = o; });
   const events = [];
+  const appearDates = new Set();
   if (!cold) {
     for (const o of observed) {
       if (!prevSlots[o.key]) {
         const ev = { t: nowIso, ev: 'appear', lid: o.lid, date: o.ds, dow: o.dow, slot: o.time, courts: o.courts, lead: o.lead };
         if (isNewDate(o.ds)) ev.nr = 1;
         events.push(ev);
+        appearDates.add(o.ds);
       }
     }
     for (const [key, prev] of Object.entries(prevSlots)) {
@@ -129,9 +136,15 @@ async function scanCycle(ctx) {
       if (!scannedSet.has(ds)) continue; // 本組沒掃 → 不能說它消失
       if (ds < todayStr) continue;
       const dur = prev.since ? +(((Date.now() - prev.since) / 60000).toFixed(1)) : null;
+      // prec：本次量測的不確定度（秒）＝距上次看到它多久。越小＝被搶走的時刻量得越準。
+      // 受 /api/all 快取 s-maxage=60 限制，實際最細約 60s，故 DataTab 以 prec<=90 視為高精度。
+      const prec = prev.last ? Math.round((Date.now() - prev.last) / 1000) : null;
       const [, lid, slot] = key.split('|');
       const lead = Math.round((Date.parse(ds + 'T00:00:00Z') - today.getTime()) / 86400e3);
-      events.push({ t: nowIso, ev: 'disappear', lid, date: ds, slot, dur, lead });
+      const evd = { t: nowIso, ev: 'disappear', lid, date: ds, slot, dur, lead };
+      if (prec != null) evd.prec = prec;
+      if (burst) evd.burst = 1;
+      events.push(evd);
     }
   }
   appendEvents(events);
@@ -157,9 +170,10 @@ async function scanCycle(ctx) {
   }
 
   const newSlots = {};
-  for (const o of observed) newSlots[o.key] = { courts: o.courts, since: prevSlots[o.key]?.since || Date.now() };
-  console.log(`  cycle：觀測 ${observed.length}、符合 ${matches.length}、fresh ${fresh.length}、ok ${okResp}/err ${errResp}、事件 ${events.length}`);
-  return { scannedSet, newSlots, okResp, errResp, freshCount: fresh.length, msgCount };
+  const nowMs = Date.now();
+  for (const o of observed) newSlots[o.key] = { courts: o.courts, since: prevSlots[o.key]?.since || nowMs, last: nowMs };
+  console.log(`  cycle${burst ? '⚡' : ''}：觀測 ${observed.length}、符合 ${matches.length}、fresh ${fresh.length}、ok ${okResp}/err ${errResp}、事件 ${events.length}`);
+  return { scannedSet, newSlots, okResp, errResp, freshCount: fresh.length, msgCount, appearDates };
 }
 
 // 合併：保留「本輪沒掃且未過期」的日期的舊 slots，覆蓋掃過的日期。
@@ -200,6 +214,7 @@ async function main() {
   const hotWindows = watch.hotWindows || [];
   const hotJitterSec = watch.hotJitterSec ?? 5;
   const hotMaxMin = watch.hotMaxMin ?? 25;
+  const rb = watch.reactiveBurst || {};
 
   const nowMin = twHourMin();
   const inHotTime = !!process.env.HOT_FORCE || hotWindows.some(w => nowMin >= w.startMin && nowMin < w.endMin);
@@ -293,6 +308,40 @@ async function main() {
     const res = await scanCycle({ ...ctxBase, datesToScan: activeDates, prevSlots: liveSlots, cold });
     liveSlots = mergeSlots(liveSlots, res, todayStr);
     totalOk = res.okResp; totalErr = res.errResp; totalFresh = res.freshCount; totalMsgs = res.msgCount; iters = 1;
+
+    // ── 事件觸發密集追蹤（reactiveBurst）──
+    // 本輪（正常掃描）若冒出新退訂，就針對那些日期密集追到被搶走或逾時，把「被搶走時刻」量準。
+    // 冷啟動只建狀態不追；HOT_FORCE 測試模式下交給熱區邏輯、這裡略過。
+    const rbEnabled = rb.enabled !== false;
+    if (rbEnabled && !cold && !process.env.HOT_FORCE && res.appearDates && res.appearDates.size > 0) {
+      const burstSet = res.appearDates;
+      const burstDates = activeDates.filter(a => burstSet.has(a.ds));
+      const bInterval = Math.max(60, rb.intervalSec ?? 65);     // 不低於 60（快取下限）
+      const bMaxMin = rb.maxMin ?? 10;
+      const bJitter = rb.jitterSec ?? 5;
+      let bMaxIters = Math.max(1, Math.floor((bMaxMin * 60) / bInterval));
+      let zeroInterval = false;
+      if (process.env.BURST_TEST) { zeroInterval = true; bMaxIters = Math.min(bMaxIters, parseInt(process.env.BURST_TEST) || 3); }
+      const burstEndAt = Date.now() + bMaxMin * 60000;
+      // 監看集：這些日期上目前還開著的空位。全部被搶走（或逾時）就結束。
+      const liveCount = () => Object.keys(liveSlots).filter(k => burstSet.has(k.split('|')[0])).length;
+      console.log(`⚡ 事件觸發密集追蹤：${[...burstSet].join(',')}，每 ~${bInterval}s，上限 ${bMaxMin} 分（${bMaxIters} 輪），起始開著 ${liveCount()} 個`);
+      let bIter = 0;
+      while (bIter < bMaxIters && liveCount() > 0 && (zeroInterval || Date.now() < burstEndAt)) {
+        if (!zeroInterval) {
+          const sleepSec = Math.max(60, bInterval + (Math.random() * 2 - 1) * bJitter);
+          if (Date.now() + sleepSec * 1000 > burstEndAt) break;
+          await sleep(sleepSec * 1000);
+        }
+        const r2 = await scanCycle({ ...ctxBase, datesToScan: burstDates, prevSlots: liveSlots, cold: false, burst: true });
+        liveSlots = mergeSlots(liveSlots, r2, todayStr);
+        totalOk += r2.okResp; totalErr += r2.errResp; totalFresh += r2.freshCount; totalMsgs += r2.msgCount;
+        bIter++; iters++;
+        // 每輪寫回狀態（崩潰安全）
+        fs.writeFileSync(STATE_FILE, JSON.stringify({ slots: liveSlots, scannedDates: activeDates.map(a => a.ds), health: st.health || {}, lastRun: Date.now(), nextGap: 5 + Math.random() * 10 }));
+      }
+      console.log(`密集追蹤結束：${bIter} 輪、剩 ${liveCount()} 個未被搶走`);
+    }
   }
 
   // ── 健康監測（整輪一次）──
