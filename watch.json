@@ -1,5 +1,5 @@
 {
-  "comment": "假日模式 + 熱區迴圈。hotWindows：在指定時間窗內改成每 intervalSec 秒密集掃指定 lead 範圍的日期。startMin/endMin 為台灣時間距午夜的分鐘數。",
+  "comment": "假日模式 + 熱區迴圈 + 事件觸發密集追蹤。hotWindows：在指定時間窗內每 intervalSec 秒密集掃指定 lead 範圍日期（intervalSec 設 60，因 /api/all 快取 s-maxage=60，更快只會拿到同一份快取）。reactiveBurst：正常輪一冒出新退訂就針對那天密集追到被搶走或逾時，量準被搶時刻。startMin/endMin 為台灣時間距午夜的分鐘數。",
   "venues": ["WSSC", "NHSC", "JJSC", "DASC", "SLSC", "WHSC", "BTSC"],
   "mode": "holiday",
   "holidayHours": { "startHour": 6, "endHour": 22 },
@@ -8,9 +8,10 @@
   "daysAhead": 14,
   "minCourts": 1,
   "hotWindows": [
-    { "name": "新場釋出+付費過時", "startMin": 0, "endMin": 20, "leadMin": 12, "leadMax": 14, "intervalSec": 30 },
+    { "name": "新場釋出+付費過時", "startMin": 0, "endMin": 20, "leadMin": 12, "leadMax": 14, "intervalSec": 60 },
     { "name": "退訂晚間", "startMin": 1200, "endMin": 1320, "leadMin": 1, "leadMax": 3, "intervalSec": 60 }
   ],
   "hotJitterSec": 6,
-  "hotMaxMin": 25
+  "hotMaxMin": 25,
+  "reactiveBurst": { "enabled": true, "intervalSec": 65, "maxMin": 10, "jitterSec": 5 }
 }
