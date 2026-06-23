@@ -431,3 +431,15 @@
 {"t":"2026-06-23T01:59:36.813Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"12:00–13:00","dur":9.1,"lead":4,"prec":65,"burst":1}
 {"t":"2026-06-23T01:59:36.813Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"18:00–19:00","dur":9.1,"lead":4,"prec":65,"burst":1}
 {"t":"2026-06-23T01:59:36.813Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"21:00–22:00","dur":2606.3,"lead":4,"prec":65,"burst":1}
+{"t":"2026-06-23T06:12:17.508Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"06:00–07:00","courts":3,"lead":4}
+{"t":"2026-06-23T06:12:17.508Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"18:00–19:00","courts":1,"lead":4}
+{"t":"2026-06-23T06:12:17.508Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"21:00–22:00","courts":1,"lead":4}
+{"t":"2026-06-23T06:12:17.508Z","ev":"appear","lid":"NHSC","date":"2026-06-28","dow":0,"slot":"09:00–10:00","courts":1,"lead":5}
+{"t":"2026-06-23T06:12:17.508Z","ev":"disappear","lid":"WSSC","date":"2026-06-28","slot":"13:00–14:00","dur":1128.5,"lead":5,"prec":15708}
+{"t":"2026-06-23T06:12:17.508Z","ev":"disappear","lid":"NHSC","date":"2026-06-26","slot":"14:00–15:00","dur":252.7,"lead":3,"prec":15161}
+{"t":"2026-06-23T06:12:17.508Z","ev":"disappear","lid":"WSSC","date":"2026-06-27","slot":"19:00–20:00","dur":261.8,"lead":4,"prec":15161}
+{"t":"2026-06-23T06:12:17.508Z","ev":"disappear","lid":"SLSC","date":"2026-06-27","slot":"21:00–22:00","dur":9517.5,"lead":4,"prec":15161}
+{"t":"2026-06-23T06:16:51.181Z","ev":"disappear","lid":"NHSC","date":"2026-06-28","slot":"06:00–07:00","dur":9522,"lead":5,"prec":68,"burst":1}
+{"t":"2026-06-23T06:16:51.181Z","ev":"disappear","lid":"NHSC","date":"2026-06-28","slot":"09:00–10:00","dur":4.6,"lead":5,"prec":68,"burst":1}
+{"t":"2026-06-23T06:19:07.893Z","ev":"appear","lid":"NHSC","date":"2026-06-28","dow":0,"slot":"06:00–07:00","courts":4,"lead":5}
+{"t":"2026-06-23T06:19:07.893Z","ev":"appear","lid":"NHSC","date":"2026-06-28","dow":0,"slot":"09:00–10:00","courts":1,"lead":5}
