@@ -10,15 +10,9 @@ const sod = d => { const r=new Date(d); r.setHours(0,0,0,0); return r; };
 const fmtD = d => `${d.getMonth()+1}/${d.getDate()}（${WD[d.getDay()]}）`;
 const fmtS = d => `${d.getMonth()+1}/${d.getDate()}${WD[d.getDay()]}`;
 const fmtH = h => `${String(h||0).padStart(2,"0")}:00`;
+// 連到該場館的 Google 地圖（含實景照片、評論），不在站內顯示抓來的內容
+const gmapsUrl = v => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.name+" "+v.district)}`;
 
-const PHOTOS = [
-  "https://picsum.photos/seed/badminton1/400/270",
-  "https://picsum.photos/seed/badminton2/400/270",
-  "https://picsum.photos/seed/badminton3/400/270",
-  "https://picsum.photos/seed/badminton4/400/270",
-  "https://picsum.photos/seed/badminton5/400/270",
-  "https://picsum.photos/seed/badminton6/400/270",
-];
 const PR_TP = (x) => [
   { label:"離峰", times:"平日06:00–18:00、假日06:00–12:00", price:"NT$300/小時" },
   { label:"尖峰", times:"平日18:00–22:00、假日12:00–22:00", price:`NT$500/小時${x?" "+x:""}` },
@@ -28,29 +22,28 @@ const PR_NT = () => [
   { label:"尖峰", times:"平日18:00–22:00、假日12:00–22:00", price:"NT$300/小時 ⚠️估" },
 ];
 const PK = (car,mIn,mOut) => ({ car, motoIn:mIn, motoOut:mOut });
-const RV = (t1,s1,a1,t2,s2,a2) => [{text:t1,stars:s1,author:a1},{text:t2,stars:s2,author:a2}];
 
 const VENUES = [
-  {id:"daan",       name:"大安運動中心",   city:"台北市",district:"大安區",  address:"台北市大安區辛亥路三段55號",        floor:"4F",courts:12,adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2377-0300",bookingUrl:"https://www.daansports.com.tw/",                   officialUrl:"https://www.daansports.com.tw",  openHours:"06:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費(NT$30/30分)","有，免費","有，免費"),       photos:[PHOTOS[0],PHOTOS[1]],reviews:RV("12面超寬敞，燈光專業，設施一流",5,"羽球愛好者","假日14天前00:00要守著搶",4,"週末球友"),lat:25.026,lng:121.537},
-  {id:"wanhua",     name:"萬華運動中心",   city:"台北市",district:"萬華區",  address:"台北市萬華區東園街101號",           floor:"3F",courts:8, adv:14,sh:0, minD:8, onsiteOnly:false,phone:"02-2308-0800",bookingUrl:"https://whsc.com.tw/",                             officialUrl:"https://whsc.com.tw",            openHours:"07:00–22:00",lighting:"普通",note:"網路僅8–14天前，7天內僅電話",payNote:"付費預約後不可退費；7天內電話預約者，3天前繳費",pricing:PR_TP(),           parking:PK("週邊收費停車場","無","有，免費"),               photos:[PHOTOS[2],PHOTOS[3]],reviews:RV("新換木地板腳感超好",5,"桃園球友","8天前才能網路預約，但場地沒話說",3,"西區球員"),lat:25.035,lng:121.497},
-  {id:"beitou",     name:"北投運動中心",   city:"台北市",district:"北投區",  address:"台北市北投區中央南路一段55號",       floor:"3F",courts:6, adv:null,sh:null,minD:null,onsiteOnly:true,onsiteAdv:7,phone:"02-2820-2880",bookingUrl:"https://www.btsport.org.tw/",officialUrl:"https://www.btsport.org.tw",openHours:"07:00–22:00",lighting:"普通",note:"僅電話/現場，7天內，3天前需繳費",payNote:"現場或電話預約，使用日3天前繳費",pricing:PR_TP(),parking:PK("地面停車場（免費）","無","有，免費"),photos:[PHOTOS[4],PHOTOS[5]],reviews:RV("場地乾淨，北投少見羽球場",3,"北投居民","冷氣涼，停車方便",4,"週末球友"),lat:25.132,lng:121.499},
-  {id:"shilin",     name:"士林運動中心",   city:"台北市",district:"士林區",  address:"台北市士林區士商路1號",           floor:"7F",courts:10,adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2880-6066",bookingUrl:"https://www.slsc-taipei.org/",                     officialUrl:"https://www.slsc-taipei.org",    openHours:"07:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1–B3收費(NT$30/30分)","有，免費","有，免費"),   photos:[PHOTOS[0],PHOTOS[2]],reviews:RV("7樓燈光專業等級，超過癮",5,"士林球友","預約後當天不能取消要注意",4,"常客"),lat:25.088,lng:121.524},
-  {id:"xinyi",      name:"信義運動中心",   city:"台北市",district:"信義區",  address:"台北市信義區松仁路70號",            floor:"6F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-8786-1911",bookingUrl:"https://xysc.teamxports.com/",                     officialUrl:"https://xysc.teamxports.com",    openHours:"06:00–22:00",lighting:"專業",note:"取消需3天前線上辦理", pricing:PR_TP(),           parking:PK("信義區週邊付費停車","有，免費","有，免費"),      photos:[PHOTOS[1],PHOTOS[3]],reviews:RV("信義地段好，設施新乾淨",5,"101球友","費用稍高但品質對得起",4,"信義上班族"),lat:25.033,lng:121.565},
-  {id:"datong",     name:"大同運動中心",   city:"台北市",district:"大同區",  address:"台北市大同區鄭州路1號（台北車站附近）",             floor:"5F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2592-0055",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=DTSC",   officialUrl:"https://www.dtsc-wdyg.com.tw",   openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("週邊路邊停車","無","有，免費"),                   photos:[PHOTOS[4],PHOTOS[0]],reviews:RV("大稻埕附近交通方便，場地夠用",4,"大同球友","燈光普通打夜球略暗",3,"老球友"),lat:25.063,lng:121.513},
-  {id:"zhongshan",  name:"中山運動中心",   city:"台北市",district:"中山區",  address:"台北市中山區民權東路二段69號",       floor:"4F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2596-5858",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=ZSSC",   officialUrl:"https://cssc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費停車場","有，免費","有，免費"),             photos:[PHOTOS[2],PHOTOS[5]],reviews:RV("4樓燈光專業，適合比賽練習",5,"競技球友","管理嚴格準時有效率",4,"中山上班族"),lat:25.063,lng:121.533},
-  {id:"nangang",    name:"南港運動中心",   city:"台北市",district:"南港區",  address:"台北市南港區向陽路68號",            floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2653-2279",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=NGSC",   officialUrl:"https://ngsc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("地面免費停車場","有，免費","有，免費"),           photos:[PHOTOS[3],PHOTOS[1]],reviews:RV("假日場比較好搶，場地乾淨",4,"南港球友","停車超方便免費",5,"開車族"),lat:25.054,lng:121.607},
-  {id:"wenshan",    name:"文山運動中心",   city:"台北市",district:"文山區",  address:"台北市文山區興隆路三段222號",        floor:"6F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2230-8268",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=WSSC",   officialUrl:"https://wssc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("地面停車場","有，免費","有，免費"),               photos:[PHOTOS[5],PHOTOS[2]],reviews:RV("木柵好停車，場地寬敞",4,"家庭球友","燈光略暗，建議選早上",3,"文山球友"),lat:24.995,lng:121.568},
-  {id:"neihu",      name:"內湖運動中心",   city:"台北市",district:"內湖區",  address:"台北市內湖區文湖街20號",            floor:"4F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2656-2869",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=NHSC",   officialUrl:"https://nhsc.cyc.org.tw",        openHours:"07:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費停車場","有，免費","有，免費"),             photos:[PHOTOS[0],PHOTOS[4]],reviews:RV("科技園區旁下班順路，場地新乾淨",5,"科技業球友","4樓燈光是專業賽事等級",5,"內湖居民"),lat:25.074,lng:121.587},
-  {id:"zhongzheng", name:"中正運動中心",   city:"台北市",district:"中正區",  address:"台北市中正區汀州路三段70號",         floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2375-0888",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=JJSC",   officialUrl:"https://www.wsjjsc.com.tw",      openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("週邊付費停車場","無","有，免費"),                 photos:[PHOTOS[3],PHOTOS[5]],reviews:RV("師大附近氣氛輕鬆",4,"師大球友","捷運步行即到",4,"通勤球友"),lat:25.032,lng:121.518},
-  {id:"tsc",        name:"台北市網球中心", city:"台北市",district:"內湖區",  address:"台北市內湖區民善街1號",             floor:"2F",courts:6, adv:7, sh:6, minD:1, onsiteOnly:false,phone:"02-2795-1166",bookingUrl:"https://www.tsc.taipei/",                          officialUrl:"https://www.tsc.taipei",         openHours:"06:00–22:00",lighting:"專業",note:"06:00起開放，尖峰需租2小時",payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP("（需租2小時）"),parking:PK("地面免費停車（2小時）","有，免費","有，免費"),photos:[PHOTOS[1],PHOTOS[3]],reviews:RV("設施一流，燈光真正專業賽事等級",5,"進階球友","尖峰需租2小時，但場地頂尖",4,"週末球友"),lat:25.075,lng:121.580},
-  {id:"cyc",        name:"青年活動中心",   city:"台北市",district:"內湖區",  address:"台北市內湖區康寧路三段109號",        floor:"2F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2796-3558",bookingUrl:"https://scr.cyc.org.tw/tp02.aspx?module=net_booking&files=booking_before&PT=1",officialUrl:"https://scr.cyc.org.tw",openHours:"07:00–22:00",lighting:"普通",note:null,pricing:PR_TP(),parking:PK("地面停車(NT$20/30分)","有，免費","有，免費"),photos:[PHOTOS[4],PHOTOS[0]],reviews:RV("CP值高，費用合理，場地乾淨",4,"省錢球友","當天也能訂，臨時起意最佳",5,"內湖球友"),lat:25.073,lng:121.593},
-  {id:"yonghe",     name:"永和運動中心",   city:"新北市",district:"永和區",  address:"新北市永和區永和路二段25號",         floor:"3F",courts:8, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2926-1885",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面停車場","有，免費","有，免費"),               photos:[PHOTOS[2],PHOTOS[4]],reviews:RV("離台北近費用便宜，值得跨縣市",4,"中和球友","假日比台北好搶",4,"新北球友"),lat:25.008,lng:121.516},
-  {id:"banqiao",    name:"板橋體育館",     city:"新北市",district:"板橋區",  address:"新北市板橋區莊敬路62號",            floor:"2F",courts:8, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2955-3366",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面免費大停車場","有，免費","有，免費"),         photos:[PHOTOS[5],PHOTOS[1]],reviews:RV("停車超方便免費，帶家人推薦",5,"板橋球友","場地保養好，費用親民",4,"固定球友"),lat:25.013,lng:121.462},
-  {id:"zhonghe",    name:"中和運動中心",   city:"新北市",district:"中和區",  address:"新北市中和區中安街107號",           floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2240-3456",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("週邊付費停車場","無","有，免費"),                 photos:[PHOTOS[0],PHOTOS[3]],reviews:RV("環境不錯，場地整潔，服務好",4,"中和球友","費用比台北便宜，品質差不多",4,"比價達人"),lat:24.997,lng:121.499},
-  {id:"xindian",    name:"新店運動中心",   city:"新北市",district:"新店區",  address:"新北市新店區北宜路一段16號",         floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2911-5678",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面免費停車場","有，免費","有，免費"),           photos:[PHOTOS[1],PHOTOS[5]],reviews:RV("碧潭附近打完球可散步",5,"新店居民","假日競爭少，7天前通常搶得到",4,"南區球友"),lat:24.967,lng:121.535},
-  {id:"xizhi",      name:"汐止運動中心",   city:"新北市",district:"汐止區",  address:"新北市汐止區新台五路一段182號",      floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2641-2345",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面免費停車場","有，免費","有，免費"),           photos:[PHOTOS[3],PHOTOS[2]],reviews:RV("人少假日好搶，停車免費，從內湖不遠",4,"內湖球友","場地新設施好，比想像中棒",5,"汐止球友"),lat:25.067,lng:121.657},
-  {id:"sanchong",   name:"三重運動中心",   city:"新北市",district:"三重區",  address:"新北市三重區重新路五段609號",        floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2982-3456",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面停車場","有，免費","有，免費"),               photos:[PHOTOS[4],PHOTOS[0]],reviews:RV("交通方便，場地環境良好，費用實惠",4,"三重球友","工作人員親切，CP值高",4,"新北球友"),lat:25.063,lng:121.484},
-  {id:"xinzhuang",  name:"新莊運動中心",   city:"新北市",district:"新莊區",  address:"新北市新莊區瓊林路28號",            floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2992-4567",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面免費停車場","有，免費","有，免費"),           photos:[PHOTOS[2],PHOTOS[5]],reviews:RV("場地新停車方便，環境輕鬆",4,"新莊球友","假日場好搶，建議選早上較涼快",3,"週末球友"),lat:25.035,lng:121.449},
+  {id:"daan",       name:"大安運動中心",   city:"台北市",district:"大安區",  address:"台北市大安區辛亥路三段55號",        floor:"4F",courts:12,adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2377-0300",bookingUrl:"https://www.daansports.com.tw/",                   officialUrl:"https://www.daansports.com.tw",  openHours:"06:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費(NT$30/30分)","有，免費","有，免費"),       lat:25.026,lng:121.537},
+  {id:"wanhua",     name:"萬華運動中心",   city:"台北市",district:"萬華區",  address:"台北市萬華區西寧南路6之1號",           floor:"3F",courts:8, adv:14,sh:0, minD:8, onsiteOnly:false,phone:"02-2308-0800",bookingUrl:"https://whsc.com.tw/",                             officialUrl:"https://whsc.com.tw",            openHours:"06:00–22:00",lighting:"普通",note:"網路僅8–14天前，7天內僅電話",payNote:"付費預約後不可退費；7天內電話預約者，3天前繳費",pricing:PR_TP(),           parking:PK("週邊收費停車場","無","有，免費"),               lat:25.04743,lng:121.50657},
+  {id:"beitou",     name:"北投運動中心",   city:"台北市",district:"北投區",  address:"台北市北投區石牌路一段39巷100號",       floor:"3F",courts:6, adv:null,sh:null,minD:null,onsiteOnly:true,onsiteAdv:7,phone:"02-2820-2880",bookingUrl:"https://www.btsport.org.tw/",officialUrl:"https://www.btsport.org.tw",openHours:"06:00–22:00",lighting:"普通",note:"僅電話/現場，7天內，3天前需繳費",payNote:"現場或電話預約，使用日3天前繳費",pricing:PR_TP(),parking:PK("地面停車場（免費）","無","有，免費"),lat:25.11666,lng:121.50962},
+  {id:"shilin",     name:"士林運動中心",   city:"台北市",district:"士林區",  address:"台北市士林區士商路1號",           floor:"7F",courts:10,adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2880-6066",bookingUrl:"https://www.slsc-taipei.org/",                     officialUrl:"https://www.slsc-taipei.org",    openHours:"06:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1–B3收費(NT$30/30分)","有，免費","有，免費"),   lat:25.088,lng:121.524},
+  {id:"xinyi",      name:"信義運動中心",   city:"台北市",district:"信義區",  address:"台北市信義區松勤街100號",            floor:"6F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-8786-1911",bookingUrl:"https://xysc.teamxports.com/",                     officialUrl:"https://xysc.teamxports.com",    openHours:"06:00–22:00",lighting:"專業",note:"取消需3天前線上辦理", pricing:PR_TP(),           parking:PK("信義區週邊付費停車","有，免費","有，免費"),      lat:25.03170,lng:121.56677},
+  {id:"datong",     name:"大同運動中心",   city:"台北市",district:"大同區",  address:"台北市大同區大龍街51號",             floor:"5F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2592-0055",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=DTSC",   officialUrl:"https://www.dtsc-wdyg.com.tw",   openHours:"06:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("週邊路邊停車","無","有，免費"),                   lat:25.06529,lng:121.51636},
+  {id:"zhongshan",  name:"中山運動中心",   city:"台北市",district:"中山區",  address:"台北市中山區中山北路二段44巷2號",       floor:"4F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2596-5858",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=ZSSC",   officialUrl:"https://cssc.cyc.org.tw",        openHours:"06:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費停車場","有，免費","有，免費"),             lat:25.05489,lng:121.52139},
+  {id:"nangang",    name:"南港運動中心",   city:"台北市",district:"南港區",  address:"台北市南港區玉成街69號",            floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2653-2279",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=NGSC",   officialUrl:"https://ngsc.cyc.org.tw",        openHours:"06:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("地面免費停車場","有，免費","有，免費"),           lat:25.04890,lng:121.58189},
+  {id:"wenshan",    name:"文山運動中心",   city:"台北市",district:"文山區",  address:"台北市文山區興隆路三段222號",        floor:"6F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2230-8268",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=WSSC",   officialUrl:"https://wssc.cyc.org.tw",        openHours:"06:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("地面停車場","有，免費","有，免費"),               lat:24.995,lng:121.568},
+  {id:"neihu",      name:"內湖運動中心",   city:"台北市",district:"內湖區",  address:"台北市內湖區洲子街12號",            floor:"4F",courts:8, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2656-2869",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=NHSC",   officialUrl:"https://nhsc.cyc.org.tw",        openHours:"06:00–22:00",lighting:"專業",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("B1收費停車場","有，免費","有，免費"),             lat:25.07821,lng:121.57514},
+  {id:"zhongzheng", name:"中正運動中心",   city:"台北市",district:"中正區",  address:"台北市中正區信義路一段1號",         floor:"3F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2375-0888",bookingUrl:"https://booking-tpsc.sporetrofit.com/?LID=JJSC",   officialUrl:"https://www.wsjjsc.com.tw",      openHours:"06:00–22:00",lighting:"普通",note:null,payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP(),           parking:PK("週邊付費停車場","無","有，免費"),                 lat:25.03786,lng:121.51985},
+  {id:"tsc",        name:"台北市網球中心", city:"台北市",district:"內湖區",  address:"台北市內湖區民善街1號",             floor:"2F",courts:6, adv:7, sh:6, minD:1, onsiteOnly:false,phone:"02-2795-1166",bookingUrl:"https://www.tsc.taipei/",                          officialUrl:"https://www.tsc.taipei",         openHours:"06:00–22:00",lighting:"專業",note:"06:00起開放，尖峰需租2小時",payNote:"網路預約後10分鐘內完成付款；使用日7天內預約者，當日21:00前繳費",pricing:PR_TP("（需租2小時）"),parking:PK("地面免費停車（2小時）","有，免費","有，免費"),lat:25.075,lng:121.580},
+  {id:"cyc",        name:"青年活動中心",   city:"台北市",district:"內湖區",  address:"台北市內湖區康寧路三段109號",        floor:"2F",courts:6, adv:14,sh:0, minD:1, onsiteOnly:false,phone:"02-2796-3558",bookingUrl:"https://scr.cyc.org.tw/tp02.aspx?module=net_booking&files=booking_before&PT=1",officialUrl:"https://scr.cyc.org.tw",openHours:"07:00–22:00",lighting:"普通",note:null,pricing:PR_TP(),parking:PK("地面停車(NT$20/30分)","有，免費","有，免費"),lat:25.073,lng:121.593},
+  {id:"yonghe",     name:"永和運動中心",   city:"新北市",district:"永和區",  address:"新北市永和區永和路二段25號",         floor:"3F",courts:8, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2926-1885",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面停車場","有，免費","有，免費"),               lat:25.008,lng:121.516},
+  {id:"banqiao",    name:"板橋體育館",     city:"新北市",district:"板橋區",  address:"新北市板橋區莊敬路62號",            floor:"2F",courts:8, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2955-3366",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面免費大停車場","有，免費","有，免費"),         lat:25.013,lng:121.462},
+  {id:"zhonghe",    name:"中和運動中心",   city:"新北市",district:"中和區",  address:"新北市中和區中安街107號",           floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2240-3456",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("週邊付費停車場","無","有，免費"),                 lat:24.997,lng:121.499},
+  {id:"xindian",    name:"新店運動中心",   city:"新北市",district:"新店區",  address:"新北市新店區北宜路一段16號",         floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2911-5678",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面免費停車場","有，免費","有，免費"),           lat:24.967,lng:121.535},
+  {id:"xizhi",      name:"汐止運動中心",   city:"新北市",district:"汐止區",  address:"新北市汐止區新台五路一段182號",      floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2641-2345",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面免費停車場","有，免費","有，免費"),           lat:25.067,lng:121.657},
+  {id:"sanchong",   name:"三重運動中心",   city:"新北市",district:"三重區",  address:"新北市三重區重新路五段609號",        floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2982-3456",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面停車場","有，免費","有，免費"),               lat:25.063,lng:121.484},
+  {id:"xinzhuang",  name:"新莊運動中心",   city:"新北市",district:"新莊區",  address:"新北市新莊區瓊林路28號",            floor:"3F",courts:6, adv:7, sh:0, minD:1, onsiteOnly:false,phone:"02-2992-4567",bookingUrl:"https://sports.ntpc.gov.tw/",                      officialUrl:"https://sports.ntpc.gov.tw",     openHours:"07:00–22:00",lighting:"普通",note:null,payNote:"預約後3天內完成繳費，逾時系統自動取消",pricing:PR_NT(),           parking:PK("地面免費停車場","有，免費","有，免費"),           lat:25.035,lng:121.449},
 ];
 // ── utils ─────────────────────────────────────────────────────────────────────
 const getOpenTime = (v, d) => {
@@ -121,7 +114,7 @@ export default function App() {
           <span style={{fontSize:24,filter:"drop-shadow(0 0 10px rgba(74,222,128,0.35))"}}>🏸</span>
           <div style={{flex:1}}>
             <div style={{fontSize:17,fontWeight:900,color:"#f8fafc",letterSpacing:"-.01em"}}>台北羽球助手</div>
-            <div style={{fontSize:10.5,color:"#64748b",marginTop:2}}>PlayBadmintonTaipei · V2026.06.18</div>
+            <div style={{fontSize:10.5,color:"#64748b",marginTop:2}}>PlayBadmintonTaipei · V2026.06.24</div>
           </div>
           <div style={S.livePill}>
             <span style={S.liveDot}/>LIVE {now.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",hour12:false})}
@@ -554,23 +547,19 @@ function RealtimeVCard({ v, lid, now, weekendDates, favs, togFav, todayClicked, 
       </div>
 
       <button onClick={()=>setOpen(o=>!o)} style={S.expandBtn}>
-        {open?"▲ 收起詳情":"▼ 詳情（照片、費用、停車、評論）"}
+        {open?"▲ 收起詳情":"▼ 詳情（費用、停車、實景、評論）"}
       </button>
 
       {open && (
         <div style={{padding:"12px 12px 14px",borderTop:"1px solid #1c2a3a"}}>
-          {/* Photos */}
-          <div style={{display:"flex",gap:7,overflowX:"auto",marginBottom:12}}>
-            {v.photos.map((p,i)=>(
-              <img key={i} src={p} alt={v.name}
-                style={{width:160,height:107,objectFit:"cover",borderRadius:9,flexShrink:0}}
-                onError={e=>e.target.style.display="none"}/>
-            ))}
-          </div>
+          {/* Google 實景照片 / 地圖 */}
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
             <span style={{fontSize:11,padding:"4px 9px",borderRadius:7,color:lightCol,border:`1px solid ${lightCol}44`,background:"rgba(0,0,0,0.25)"}}>💡 燈光：{v.lighting}</span>
-            <a href={`https://www.google.com/maps/search/${encodeURIComponent(v.name+" "+v.district)}`}
-              target="_blank" rel="noreferrer"
+            <a href={gmapsUrl(v)} target="_blank" rel="noreferrer"
+              style={{fontSize:11,padding:"4px 9px",borderRadius:7,background:"rgba(74,222,128,0.08)",color:"#4ade80",textDecoration:"none",border:"1px solid rgba(74,222,128,0.25)"}}>
+              📷 Google 實景照片
+            </a>
+            <a href={gmapsUrl(v)} target="_blank" rel="noreferrer"
               style={{fontSize:11,padding:"4px 9px",borderRadius:7,background:"rgba(96,165,250,0.08)",color:"#60a5fa",textDecoration:"none",border:"1px solid rgba(96,165,250,0.25)"}}>
               🧭 Google地圖
             </a>
@@ -598,21 +587,12 @@ function RealtimeVCard({ v, lid, now, weekendDates, favs, togFav, todayClicked, 
               </div>
             ))}
           </div>
-          {/* Reviews */}
+          {/* Reviews（連出去 Google，不在站內顯示） */}
           <div>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>精選評論</div>
-            {v.reviews.map((r,i)=>(
-              <div key={i} style={{padding:"8px 10px",borderRadius:8,background:"#0b1018",marginBottom:5}}>
-                <div style={{fontSize:11,color:"#f1f5f9",lineHeight:1.6}}>「{r.text}」</div>
-                <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-                  <span style={{fontSize:10,color:"#64748b"}}>— {r.author}</span>
-                  <span style={{fontSize:10}}>{"⭐".repeat(r.stars)}</span>
-                </div>
-              </div>
-            ))}
-            <a href={`https://www.google.com/maps/search/${encodeURIComponent(v.name+" "+v.district)}`}
-              target="_blank" rel="noreferrer" style={{fontSize:11,color:"#60a5fa",textDecoration:"none"}}>
-              查看 Google 完整評論 ↗
+            <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>評論</div>
+            <a href={gmapsUrl(v)} target="_blank" rel="noreferrer"
+              style={{display:"inline-block",fontSize:12,fontWeight:600,padding:"8px 12px",borderRadius:8,background:"rgba(96,165,250,0.08)",color:"#60a5fa",textDecoration:"none",border:"1px solid rgba(96,165,250,0.25)"}}>
+              ⭐ 看 Google 評論 ↗
             </a>
           </div>
         </div>
@@ -728,23 +708,19 @@ function VCard({ v, now, weekends, favs, togFav, todayClicked, markClicked, show
       </div>
       {/* Expand toggle */}
       <button onClick={()=>setOpen(o=>!o)} style={S.expandBtn}>
-        {open?"▲ 收起詳情":"▼ 詳情（照片、費用、停車、評論）"}
+        {open?"▲ 收起詳情":"▼ 詳情（費用、停車、實景、評論）"}
       </button>
       {/* Detail section – no duplicate info */}
       {open && (
         <div style={{padding:"12px 12px 14px",borderTop:"1px solid #1c2a3a"}}>
-          {/* Photos */}
-          <div style={{display:"flex",gap:7,overflowX:"auto",marginBottom:12}}>
-            {v.photos.map((p,i) => (
-              <img key={i} src={p} alt={v.name} style={{width:160,height:107,objectFit:"cover",borderRadius:9,flexShrink:0}}
-                onError={e=>e.target.style.display="none"}/>
-            ))}
-          </div>
-          {/* Lighting + nav */}
+          {/* Google 實景照片 / 導航 */}
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
             <span style={{fontSize:11,padding:"4px 9px",borderRadius:7,color:lightCol,border:`1px solid ${lightCol}44`,background:"rgba(0,0,0,0.25)"}}>💡 燈光：{v.lighting}</span>
-            <a href={`https://www.google.com/maps/search/${encodeURIComponent(v.name+" "+v.district)}`}
-              target="_blank" rel="noreferrer"
+            <a href={gmapsUrl(v)} target="_blank" rel="noreferrer"
+              style={{fontSize:11,padding:"4px 9px",borderRadius:7,background:"rgba(74,222,128,0.08)",color:"#4ade80",textDecoration:"none",border:"1px solid rgba(74,222,128,0.25)"}}>
+              📷 Google 實景照片
+            </a>
+            <a href={gmapsUrl(v)} target="_blank" rel="noreferrer"
               style={{fontSize:11,padding:"4px 9px",borderRadius:7,background:"rgba(96,165,250,0.08)",color:"#60a5fa",textDecoration:"none",border:"1px solid rgba(96,165,250,0.25)"}}>
               🧭 Google導航
             </a>
@@ -793,21 +769,12 @@ function VCard({ v, now, weekends, favs, togFav, todayClicked, markClicked, show
               </div>
             </div>
           )}
-          {/* Reviews */}
+          {/* Reviews（連出去 Google，不在站內顯示） */}
           <div>
-            <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>精選評論</div>
-            {v.reviews.map((r,i) => (
-              <div key={i} style={{padding:"8px 10px",borderRadius:8,background:"#0b1018",marginBottom:5}}>
-                <div style={{fontSize:11,color:"#f1f5f9",lineHeight:1.6}}>「{r.text}」</div>
-                <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-                  <span style={{fontSize:10,color:"#64748b"}}>— {r.author}</span>
-                  <span style={{fontSize:10}}>{"⭐".repeat(r.stars)}</span>
-                </div>
-              </div>
-            ))}
-            <a href={`https://www.google.com/maps/search/${encodeURIComponent(v.name+" "+v.district)}`}
-              target="_blank" rel="noreferrer" style={{fontSize:11,color:"#60a5fa",textDecoration:"none"}}>
-              查看 Google 完整評論 ↗
+            <div style={{fontSize:10,color:"#64748b",marginBottom:5}}>評論</div>
+            <a href={gmapsUrl(v)} target="_blank" rel="noreferrer"
+              style={{display:"inline-block",fontSize:12,fontWeight:600,padding:"8px 12px",borderRadius:8,background:"rgba(96,165,250,0.08)",color:"#60a5fa",textDecoration:"none",border:"1px solid rgba(96,165,250,0.25)"}}>
+              ⭐ 看 Google 評論 ↗
             </a>
           </div>
         </div>
