@@ -483,3 +483,16 @@
 {"t":"2026-06-24T13:49:10.054Z","ev":"appear","lid":"NHSC","date":"2026-06-26","dow":5,"slot":"07:00–08:00","courts":1,"lead":2}
 {"t":"2026-06-24T13:49:10.054Z","ev":"appear","lid":"WSSC","date":"2026-06-26","dow":5,"slot":"13:00–14:00","courts":1,"lead":2}
 {"t":"2026-06-24T13:50:06.819Z","ev":"disappear","lid":"DASC","date":"2026-06-27","slot":"07:00–08:00","dur":330.3,"lead":3,"prec":57}
+{"t":"2026-06-25T01:28:35.579Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"18:00–19:00","courts":1,"lead":2}
+{"t":"2026-06-25T01:28:35.579Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"19:00–20:00","courts":1,"lead":2}
+{"t":"2026-06-25T01:28:35.579Z","ev":"appear","lid":"DASC","date":"2026-06-27","dow":6,"slot":"21:00–22:00","courts":1,"lead":2}
+{"t":"2026-06-25T01:28:35.579Z","ev":"disappear","lid":"WSSC","date":"2026-06-26","slot":"13:00–14:00","dur":699.4,"lead":1,"prec":33892}
+{"t":"2026-06-25T01:28:35.579Z","ev":"disappear","lid":"JJSC","date":"2026-06-28","slot":"07:00–08:00","dur":5746,"lead":3,"prec":33892}
+{"t":"2026-06-25T01:35:22.801Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"06:00–07:00","dur":2603.1,"lead":2,"prec":70,"burst":1}
+{"t":"2026-06-25T01:35:22.801Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"18:00–19:00","dur":6.8,"lead":2,"prec":70,"burst":1}
+{"t":"2026-06-25T01:35:22.801Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"19:00–20:00","dur":6.8,"lead":2,"prec":70,"burst":1}
+{"t":"2026-06-25T01:35:22.801Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"21:00–22:00","dur":2603.1,"lead":2,"prec":70,"burst":1}
+{"t":"2026-06-25T01:36:28.682Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"06:00–07:00","courts":2,"lead":2}
+{"t":"2026-06-25T01:36:28.682Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"18:00–19:00","courts":1,"lead":2}
+{"t":"2026-06-25T01:36:28.682Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"19:00–20:00","courts":1,"lead":2}
+{"t":"2026-06-25T01:36:28.682Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"21:00–22:00","courts":1,"lead":2}
