@@ -575,3 +575,14 @@
 {"t":"2026-06-26T13:42:57.831Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"08:00–09:00","courts":1,"lead":1}
 {"t":"2026-06-26T13:42:57.831Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"19:00–20:00","courts":1,"lead":1}
 {"t":"2026-06-26T13:47:01.336Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"08:00–09:00","dur":4,"lead":1,"prec":61}
+{"t":"2026-06-26T15:57:26.396Z","ev":"appear","lid":"NHSC","date":"2026-06-27","dow":6,"slot":"08:00–09:00","courts":1,"lead":1}
+{"t":"2026-06-26T15:57:26.396Z","ev":"disappear","lid":"DASC","date":"2026-07-03","slot":"08:00–09:00","dur":9500.6,"lead":7,"prec":15761}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"06:00–07:00","dur":139.1,"lead":1,"prec":66,"burst":1}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"08:00–09:00","dur":4.6,"lead":1,"prec":66,"burst":1}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"NHSC","date":"2026-06-27","slot":"19:00–20:00","dur":139.1,"lead":1,"prec":66,"burst":1}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"DASC","date":"2026-06-27","slot":"21:00–22:00","dur":2313.5,"lead":1,"prec":66,"burst":1}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"SLSC","date":"2026-06-27","slot":"13:00–14:00","dur":1484.7,"lead":1,"prec":66,"burst":1}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"SLSC","date":"2026-06-27","slot":"18:00–19:00","dur":151.6,"lead":1,"prec":66,"burst":1}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"SLSC","date":"2026-06-27","slot":"19:00–20:00","dur":151.6,"lead":1,"prec":66,"burst":1}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"SLSC","date":"2026-06-27","slot":"20:00–21:00","dur":458.6,"lead":1,"prec":66,"burst":1}
+{"t":"2026-06-26T16:02:03.285Z","ev":"disappear","lid":"SLSC","date":"2026-06-27","slot":"21:00–22:00","dur":458.6,"lead":1,"prec":66,"burst":1}
