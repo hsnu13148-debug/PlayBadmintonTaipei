@@ -25,12 +25,23 @@ for attempt in 1 2 3; do
   fi
 
   mkdir -p "$WT/data"
+
+  # 讓 Vercel 不要部署 data 分支（這分支只放資料，不是 app）。
+  # Vercel 的 git.deploymentEnabled 是讀「被推送分支自己」的 vercel.json，
+  # 所以這份必須放在 data 分支上才會生效（放在 main 擋不住 data 的部署）。
+  cat > "$WT/vercel.json" <<'JSON'
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": { "deploymentEnabled": false }
+}
+JSON
+
   for f in data/events-*.ndjson; do
     cat "$f" >> "$WT/data/$(basename "$f")"
   done
 
   if ( cd "$WT" \
-        && git add data \
+        && git add vercel.json data \
         && git commit -m "data: $(date -u +%FT%TZ) ($(cat data/events-*.ndjson | wc -l) lines)" >/dev/null 2>&1 \
         && git push origin HEAD:data >/dev/null 2>&1 ); then
     echo "事件已推到 data 分支（第 $attempt 次嘗試）"
