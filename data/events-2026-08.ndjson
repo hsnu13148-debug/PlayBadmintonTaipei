@@ -2000,3 +2000,8 @@
 {"t":"2026-08-18T07:43:19.090Z","ev":"disappear","lid":"JJSC","date":"2026-08-22","slot":"16:00–17:00","dur":2.1,"lead":4,"prec":64,"burst":1}
 {"t":"2026-08-18T07:45:31.064Z","ev":"appear","lid":"JJSC","date":"2026-08-22","dow":6,"slot":"16:00–17:00","courts":1,"lead":4}
 {"t":"2026-08-18T08:16:30.713Z","ev":"appear","lid":"WSSC","date":"2026-08-21","dow":5,"slot":"12:00–13:00","courts":1,"lead":3}
+{"t":"2026-08-18T09:49:24.435Z","ev":"appear","lid":"JJSC","date":"2026-08-21","dow":5,"slot":"18:00–19:00","courts":1,"lead":3}
+{"t":"2026-08-18T09:57:13.665Z","ev":"disappear","lid":"JJSC","date":"2026-08-21","slot":"06:00–07:00","dur":1247.7,"lead":3,"prec":69,"burst":1}
+{"t":"2026-08-18T09:57:13.665Z","ev":"disappear","lid":"JJSC","date":"2026-08-21","slot":"18:00–19:00","dur":7.8,"lead":3,"prec":69,"burst":1}
+{"t":"2026-08-18T09:58:20.074Z","ev":"appear","lid":"JJSC","date":"2026-08-21","dow":5,"slot":"06:00–07:00","courts":2,"lead":3}
+{"t":"2026-08-18T09:58:20.074Z","ev":"appear","lid":"JJSC","date":"2026-08-21","dow":5,"slot":"18:00–19:00","courts":1,"lead":3}
