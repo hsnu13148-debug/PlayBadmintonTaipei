@@ -2615,3 +2615,16 @@
 {"t":"2026-08-22T04:56:08.036Z","ev":"appear","lid":"NHSC","date":"2026-08-23","dow":0,"slot":"17:00–18:00","courts":1,"lead":1}
 {"t":"2026-08-22T05:31:00.971Z","ev":"disappear","lid":"JJSC","date":"2026-08-23","slot":"21:00–22:00","dur":942.7,"lead":1,"prec":1820}
 {"t":"2026-08-22T05:31:00.971Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"09:00–10:00","dur":34.9,"lead":1,"prec":1820}
+{"t":"2026-08-22T05:57:19.264Z","ev":"appear","lid":"SLSC","date":"2026-08-23","dow":0,"slot":"14:00–15:00","courts":1,"lead":1}
+{"t":"2026-08-22T05:57:19.264Z","ev":"appear","lid":"SLSC","date":"2026-08-23","dow":0,"slot":"15:00–16:00","courts":1,"lead":1}
+{"t":"2026-08-22T05:57:19.264Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"16:00–17:00","dur":61.2,"lead":1,"prec":1578}
+{"t":"2026-08-22T05:57:19.264Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"17:00–18:00","dur":61.2,"lead":1,"prec":1578}
+{"t":"2026-08-22T05:59:24.964Z","ev":"appear","lid":"NHSC","date":"2026-08-23","dow":0,"slot":"16:00–17:00","courts":1,"lead":1}
+{"t":"2026-08-22T06:01:42.689Z","ev":"appear","lid":"NHSC","date":"2026-08-23","dow":0,"slot":"17:00–18:00","courts":1,"lead":1}
+{"t":"2026-08-22T06:01:42.689Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"16:00–17:00","dur":2.3,"lead":1,"prec":66,"burst":1}
+{"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"06:00–07:00","dur":70,"lead":1,"prec":64,"burst":1}
+{"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"12:00–13:00","dur":70,"lead":1,"prec":64,"burst":1}
+{"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"13:00–14:00","dur":70,"lead":1,"prec":64,"burst":1}
+{"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"14:00–15:00","dur":70,"lead":1,"prec":64,"burst":1}
+{"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"15:00–16:00","dur":70,"lead":1,"prec":64,"burst":1}
+{"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"17:00–18:00","dur":4.4,"lead":1,"prec":64,"burst":1}
