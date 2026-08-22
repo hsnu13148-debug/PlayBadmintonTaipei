@@ -2628,3 +2628,16 @@
 {"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"14:00–15:00","dur":70,"lead":1,"prec":64,"burst":1}
 {"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"15:00–16:00","dur":70,"lead":1,"prec":64,"burst":1}
 {"t":"2026-08-22T06:06:06.775Z","ev":"disappear","lid":"NHSC","date":"2026-08-23","slot":"17:00–18:00","dur":4.4,"lead":1,"prec":64,"burst":1}
+{"t":"2026-08-22T06:49:27.406Z","ev":"appear","lid":"NHSC","date":"2026-08-23","dow":0,"slot":"06:00–07:00","courts":2,"lead":1}
+{"t":"2026-08-22T06:49:27.406Z","ev":"appear","lid":"NHSC","date":"2026-08-23","dow":0,"slot":"14:00–15:00","courts":1,"lead":1}
+{"t":"2026-08-22T06:49:27.406Z","ev":"appear","lid":"NHSC","date":"2026-08-23","dow":0,"slot":"15:00–16:00","courts":1,"lead":1}
+{"t":"2026-08-22T06:49:27.406Z","ev":"appear","lid":"NHSC","date":"2026-08-23","dow":0,"slot":"16:00–17:00","courts":1,"lead":1}
+{"t":"2026-08-22T06:49:27.406Z","ev":"appear","lid":"NHSC","date":"2026-08-23","dow":0,"slot":"17:00–18:00","courts":1,"lead":1}
+{"t":"2026-08-22T06:49:27.406Z","ev":"appear","lid":"WSSC","date":"2026-08-30","dow":0,"slot":"06:00–07:00","courts":3,"lead":8}
+{"t":"2026-08-22T06:49:27.406Z","ev":"appear","lid":"WSSC","date":"2026-08-30","dow":0,"slot":"07:00–08:00","courts":1,"lead":8}
+{"t":"2026-08-22T06:49:27.406Z","ev":"disappear","lid":"JJSC","date":"2026-08-28","slot":"06:00–07:00","dur":301.5,"lead":6,"prec":3128}
+{"t":"2026-08-22T06:51:41.369Z","ev":"appear","lid":"DASC","date":"2026-08-30","dow":0,"slot":"06:00–07:00","courts":3,"lead":8}
+{"t":"2026-08-22T06:51:41.369Z","ev":"appear","lid":"SLSC","date":"2026-08-30","dow":0,"slot":"06:00–07:00","courts":2,"lead":8}
+{"t":"2026-08-22T06:51:41.369Z","ev":"appear","lid":"WHSC","date":"2026-08-30","dow":0,"slot":"06:00–08:00","courts":3,"lead":8}
+{"t":"2026-08-22T06:54:55.210Z","ev":"disappear","lid":"JJSC","date":"2026-08-23","slot":"06:00–07:00","dur":1026.6,"lead":1,"prec":63,"burst":1}
+{"t":"2026-08-22T06:57:13.800Z","ev":"appear","lid":"JJSC","date":"2026-08-23","dow":0,"slot":"06:00–07:00","courts":4,"lead":1}
