@@ -3589,3 +3589,12 @@
 {"t":"2026-08-26T06:19:34.881Z","ev":"appear","lid":"JJSC","date":"2026-08-29","dow":6,"slot":"16:00–17:00","courts":1,"lead":3}
 {"t":"2026-08-26T06:19:34.881Z","ev":"appear","lid":"JJSC","date":"2026-08-29","dow":6,"slot":"17:00–18:00","courts":1,"lead":3}
 {"t":"2026-08-26T06:19:34.881Z","ev":"appear","lid":"DASC","date":"2026-08-29","dow":6,"slot":"12:00–13:00","courts":1,"lead":3}
+{"t":"2026-08-26T07:27:32.397Z","ev":"appear","lid":"NHSC","date":"2026-08-28","dow":5,"slot":"17:00–18:00","courts":1,"lead":2}
+{"t":"2026-08-26T07:27:32.397Z","ev":"appear","lid":"JJSC","date":"2026-08-29","dow":6,"slot":"14:00–15:00","courts":1,"lead":3}
+{"t":"2026-08-26T07:27:32.397Z","ev":"disappear","lid":"SLSC","date":"2026-08-28","slot":"08:00–09:00","dur":106.7,"lead":2,"prec":4076}
+{"t":"2026-08-26T07:27:32.397Z","ev":"disappear","lid":"JJSC","date":"2026-08-29","slot":"16:00–17:00","dur":67.9,"lead":3,"prec":3477}
+{"t":"2026-08-26T07:27:32.397Z","ev":"disappear","lid":"JJSC","date":"2026-08-29","slot":"17:00–18:00","dur":67.9,"lead":3,"prec":3477}
+{"t":"2026-08-26T07:36:35.147Z","ev":"disappear","lid":"NHSC","date":"2026-08-28","slot":"06:00–07:00","dur":3810.6,"lead":2,"prec":69,"burst":1}
+{"t":"2026-08-26T07:36:35.147Z","ev":"disappear","lid":"NHSC","date":"2026-08-28","slot":"07:00–08:00","dur":3810.6,"lead":2,"prec":69,"burst":1}
+{"t":"2026-08-26T07:36:35.147Z","ev":"disappear","lid":"NHSC","date":"2026-08-28","slot":"12:00–13:00","dur":879.1,"lead":2,"prec":69,"burst":1}
+{"t":"2026-08-26T07:36:35.147Z","ev":"disappear","lid":"NHSC","date":"2026-08-28","slot":"17:00–18:00","dur":9,"lead":2,"prec":69,"burst":1}
