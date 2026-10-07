@@ -626,3 +626,10 @@
 {"t":"2026-10-07T00:41:44.285Z","ev":"disappear","lid":"NHSC","date":"2026-10-11","slot":"21:00–22:00","dur":1333,"lead":4,"prec":70,"burst":1}
 {"t":"2026-10-07T00:42:49.130Z","ev":"appear","lid":"NHSC","date":"2026-10-11","dow":0,"slot":"06:00–07:00","courts":5,"lead":4}
 {"t":"2026-10-07T00:42:49.130Z","ev":"appear","lid":"NHSC","date":"2026-10-11","dow":0,"slot":"21:00–22:00","courts":1,"lead":4}
+{"t":"2026-10-07T06:32:20.602Z","ev":"appear","lid":"JJSC","date":"2026-10-10","dow":6,"slot":"12:00–13:00","courts":1,"lead":3}
+{"t":"2026-10-07T06:32:20.602Z","ev":"appear","lid":"JJSC","date":"2026-10-10","dow":6,"slot":"13:00–14:00","courts":1,"lead":3}
+{"t":"2026-10-07T06:32:20.602Z","ev":"appear","lid":"JJSC","date":"2026-10-11","dow":0,"slot":"08:00–09:00","courts":1,"lead":4}
+{"t":"2026-10-07T06:36:41.873Z","ev":"disappear","lid":"NHSC","date":"2026-10-10","slot":"06:00–07:00","dur":1274.6,"lead":3,"prec":63,"burst":1}
+{"t":"2026-10-07T06:36:41.873Z","ev":"disappear","lid":"NHSC","date":"2026-10-10","slot":"21:00–22:00","dur":1274.6,"lead":3,"prec":63,"burst":1}
+{"t":"2026-10-07T06:38:49.107Z","ev":"appear","lid":"NHSC","date":"2026-10-10","dow":6,"slot":"06:00–07:00","courts":3,"lead":3}
+{"t":"2026-10-07T06:38:49.107Z","ev":"appear","lid":"NHSC","date":"2026-10-10","dow":6,"slot":"21:00–22:00","courts":1,"lead":3}
