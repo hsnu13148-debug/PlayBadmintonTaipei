@@ -504,3 +504,16 @@
 {"t":"2026-11-11T13:06:17.226Z","ev":"appear","lid":"NHSC","date":"2026-11-13","dow":5,"slot":"12:00–13:00","courts":3,"lead":2}
 {"t":"2026-11-11T13:06:17.226Z","ev":"appear","lid":"NHSC","date":"2026-11-13","dow":5,"slot":"13:00–14:00","courts":1,"lead":2}
 {"t":"2026-11-11T13:06:17.226Z","ev":"appear","lid":"NHSC","date":"2026-11-13","dow":5,"slot":"14:00–15:00","courts":2,"lead":2}
+{"t":"2026-11-12T01:55:14.883Z","ev":"appear","lid":"NHSC","date":"2026-11-14","dow":6,"slot":"12:00–13:00","courts":1,"lead":2}
+{"t":"2026-11-12T01:55:14.883Z","ev":"appear","lid":"JJSC","date":"2026-11-15","dow":0,"slot":"17:00–18:00","courts":1,"lead":3}
+{"t":"2026-11-12T01:55:14.883Z","ev":"disappear","lid":"WSSC","date":"2026-11-21","slot":"06:00–07:00","dur":2299.6,"lead":9,"prec":73513}
+{"t":"2026-11-12T01:55:14.883Z","ev":"disappear","lid":"DASC","date":"2026-11-14","slot":"06:00–07:00","dur":2299.6,"lead":2,"prec":45324}
+{"t":"2026-11-12T01:55:14.883Z","ev":"disappear","lid":"DASC","date":"2026-11-14","slot":"15:00–16:00","dur":780.4,"lead":2,"prec":45324}
+{"t":"2026-11-12T01:59:40.874Z","ev":"disappear","lid":"NHSC","date":"2026-11-15","slot":"06:00–07:00","dur":1229.7,"lead":3,"prec":63,"burst":1}
+{"t":"2026-11-12T02:01:55.085Z","ev":"appear","lid":"NHSC","date":"2026-11-15","dow":0,"slot":"06:00–07:00","courts":3,"lead":3}
+{"t":"2026-11-12T02:01:55.085Z","ev":"disappear","lid":"JJSC","date":"2026-11-15","slot":"06:00–07:00","dur":3829,"lead":3,"prec":67,"burst":1}
+{"t":"2026-11-12T02:01:55.085Z","ev":"disappear","lid":"JJSC","date":"2026-11-15","slot":"17:00–18:00","dur":6.7,"lead":3,"prec":67,"burst":1}
+{"t":"2026-11-12T02:03:00.315Z","ev":"appear","lid":"JJSC","date":"2026-11-15","dow":0,"slot":"06:00–07:00","courts":5,"lead":3}
+{"t":"2026-11-12T02:03:00.315Z","ev":"appear","lid":"JJSC","date":"2026-11-15","dow":0,"slot":"17:00–18:00","courts":1,"lead":3}
+{"t":"2026-11-12T02:03:00.315Z","ev":"disappear","lid":"NHSC","date":"2026-11-15","slot":"06:00–07:00","dur":1.1,"lead":3,"prec":65,"burst":1}
+{"t":"2026-11-12T02:04:07.846Z","ev":"appear","lid":"NHSC","date":"2026-11-15","dow":0,"slot":"06:00–07:00","courts":3,"lead":3}
